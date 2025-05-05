@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vel-Don - ملابس رجالية عالية الجودة</title>
+    <style>
+        /* Reset وأنماط أساسية */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        /* التكيف مع اللغة العربية */
+        body[dir="rtl"] {
+            direction: rtl;
+            text-align: right;
+        }
+        
+        /* التنسيق العام */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        
+        /* الشريط العلوي */
+        header {
+            background-color: #1a1a1a;
+            color: white;
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #fff;
+            text-decoration: none;
+        }
+        
+        .logo span {
+            color: #4CAF50;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 1.5rem;
+        }
+        
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        nav ul li a:hover {
+            color: #4CAF50;
+        }
+        
+        .menu-toggle {
+            display: none;
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+        
+        /* قسم البطل */
+        .hero {
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 5rem 0;
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto 2rem;
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: #4CAF50;
+            color: white;
+            padding: 0.8rem 1.8rem;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: #45a049;
+        }
+        
+        /* قسم من نحن */
+        .about {
+            padding: 4rem 0;
+            background-color: white;
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 3rem;
+            font-size: 2.2rem;
+            color: #1a1a1a;
+        }
+        
+        .about-content {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 2rem;
+        }
+        
+        .about-text {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .about-image {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .about-image img {
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* قسم قصة التأسيس */
+        .foundation-story {
+            padding: 4rem 0;
+            background-color: #f8f9fa;
+        }
+        
+        .story-timeline {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .story-timeline::before {
+            content: '';
+            position: absolute;
+            width: 2px;
+            background-color: #4CAF50;
+            top: 0;
+            bottom: 0;
+            right: 50%;
+            margin-right: -1px;
+        }
+        
+        .timeline-item {
+            padding: 10px 40px;
+            position: relative;
+            width: 50%;
+            box-sizing: border-box;
+        }
+        
+        .timeline-item:nth-child(odd) {
+            right: 0;
+        }
+        
+        .timeline-item:nth-child(even) {
+            right: 50%;
+        }
+        
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: #1a1a1a;
+            border: 3px solid #4CAF50;
+            border-radius: 50%;
+            top: 15px;
+            right: -10px;
+            z-index: 1;
+        }
+        
+        .timeline-item:nth-child(even)::after {
+            right: auto;
+            left: -10px;
+        }
+        
+        .timeline-content {
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* قسم الفريق */
+        .team {
+            padding: 4rem 0;
+            background-color: white;
+        }
+        
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+        
+        .team-member {
+            text-align: center;
+        }
+        
+        .member-image {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin: 0 auto 1rem;
+            border: 5px solid #f8f9fa;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .member-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .member-name {
+            font-size: 1.2rem;
+            margin-bottom: 0.3rem;
+        }
+        
+        .member-position {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        /* قسم معرض المنتجات */
+        .gallery {
+            padding: 4rem 0;
+            background-color: #f8f9fa;
+        }
+        
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        
+        .gallery-item {
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            aspect-ratio: 1/1;
+        }
+        
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+        
+        .gallery-item:hover img {
+            transform: scale(1.05);
+        }
+        
+        /* قسم الرؤية والقيم */
+        .values {
+            padding: 4rem 0;
+            background-color: white;
+        }
+        
+        .values-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .value-card {
+            text-align: center;
+            padding: 2rem;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            transition: transform 0.3s;
+        }
+        
+        .value-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .value-icon {
+            font-size: 2.5rem;
+            color: #4CAF50;
+            margin-bottom: 1rem;
+        }
+        
+        .value-title {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+        
+        /* التذييل */
+        footer {
+            background-color: #1a1a1a;
+            color: white;
+            padding: 3rem 0 1rem;
+        }
+        
+        .footer-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .footer-column h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            color: #4CAF50;
+        }
+        
+        .footer-column ul {
+            list-style: none;
+        }
+        
+        .footer-column ul li {
+            margin-bottom: 0.8rem;
+        }
+        
+        .footer-column ul li a {
+            color: #ddd;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-column ul li a:hover {
+            color: #4CAF50;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .social-links a {
+            color: white;
+            font-size: 1.5rem;
+            transition: color 0.3s;
+        }
+        
+        .social-links a:hover {
+            color: #4CAF50;
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid #333;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        
+        /* الوسائط المتعددة للاستجابة */
+        @media (max-width: 768px) {
+            .header-container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            nav {
+                width: 100%;
+                display: none;
+                margin-top: 1rem;
+            }
+            
+            nav.active {
+                display: block;
+            }
+            
+            nav ul {
+                flex-direction: column;
+            }
+            
+            nav ul li {
+                margin: 0;
+                margin-bottom: 0.5rem;
+            }
+            
+            .menu-toggle {
+                display: block;
+                position: absolute;
+                top: 1rem;
+                left: 1rem;
+            }
+            
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+            
+            .hero p {
+                font-size: 1rem;
+            }
+            
+            .about-content {
+                flex-direction: column;
+            }
+            
+            .section-title {
+                font-size: 1.8rem;
+            }
+            
+            .story-timeline::before {
+                right: 31px;
+            }
+            
+            .timeline-item {
+                width: 100%;
+                padding-right: 70px;
+                padding-left: 25px;
+            }
+            
+            .timeline-item:nth-child(even) {
+                right: 0;
+            }
+            
+            .timeline-item::after {
+                right: 21px;
+            }
+            
+            .timeline-item:nth-child(even)::after {
+                right: 21px;
+                left: auto;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .hero {
+                padding: 3rem 0;
+            }
+            
+            .hero h1 {
+                font-size: 1.8rem;
+            }
+            
+            .btn {
+                padding: 0.6rem 1.4rem;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- الشريط العلوي -->
+    <header>
+        <div class="container header-container">
+            <a href="#" class="logo">Vel<span>-Don</span></a>
+            <div class="menu-toggle">☰</div>
+            <nav>
+                <ul>
+                    <li><a href="#home">الرئيسية</a></li>
+                    <li><a href="#about">من نحن</a></li>
+                    <li><a href="#story">قصتنا</a></li>
+                    <li><a href="#team">فريقنا</a></li>
+                    <li><a href="#gallery">معرضنا</a></li>
+                    <li><a href="#values">قيمنا</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- قسم البطل -->
+    <section class="hero" id="home">
+        <div class="container">
+            <h1>Vel-Don: رحلة تميز في عالم الموضة الرجالية</h1>
+            <p>نحن أربعة أصدقاء قررنا تحويل شغفنا بالموضة إلى علامة تجارية جزائرية تقدم ملابس رجالية عالية الجودة.</p>
+            <a href="#story" class="btn">اكتشف قصتنا</a>
+        </div>
+    </section>
+
+    <!-- قسم من نحن -->
+    <section class="about" id="about">
+        <div class="container">
+            <h2 class="section-title">من نحن</h2>
+            <div class="about-content">
+                <div class="about-text">
+                    <p>نحن أربعة مؤسسين لشركة Vel-Don، نؤمن بقوة العمل الجماعي وقدرتنا على إحداث تغيير في سوق الموضة الرجالية الجزائرية.</p>
+                    <p>بدءاً من فكرة بسيطة في مقهى بالعاصمة، تحول حلمنا إلى واقع ملموس بفضل المثابرة والعمل الجاد.</p>
+                    <p>نفتخر بأننا نقدم منتجات مصنوعة بأيدي جزائرية، مع الحفاظ على أعلى معايير الجودة والتصميم العصري.</p>
+                </div>
+                <div class="about-image">
+                    <img src="https://images.unsplash.com/photo-1602810318383-1a7702786bdf?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="فريق Vel-Don">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- قسم قصة التأسيس -->
+    <section class="foundation-story" id="story">
+        <div class="container">
+            <h2 class="section-title">رحلة التأسيس</h2>
+            <div class="story-timeline">
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <h3>بداية الفكرة - يناير 2024</h3>
+                        <p>التقينا نحن الأربعة في مقهى بالعاصمة، واكتشفنا أننا نتشارك نفس الشغف بإنشاء علامة ملابس جزائرية عالية الجودة.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <h3>البحث والتطوير - مارس 2024</h3>
+                        <p>قمنا بدراسة السوق بعناية واختبار مختلف أنواع الأقمشة والخياطات لتحديد ما يناسب عملائنا.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <h3>التأسيس الرسمي - يناير 2025</h3>
+                        <p>سجلنا العلامة التجارية رسمياً وبدأنا الإنتاج الأولي بميزانية محدودة لكن بإرادة كبيرة.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <h3>الانطلاق التجاري - مايو 2025</h3>
+                        <p>أطلقنا أول مجموعة منتجاتنا وحصلنا على ردود فعل إيجابية من العملاء، مما شجعنا على المضي قدماً.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- قسم الفريق -->
+    <section class="team" id="team">
+        <div class="container">
+            <h2 class="section-title">نحن الأربعة المؤسسون</h2>
+            <div class="team-grid">
+                <div class="team-member">
+                    <div class="member-image">
+                        <img src="https://i.suar.me/MzMqJ/l" alt="إسلام - المؤسس والمدير التنفيذي">
+                    </div>
+                    <h3 class="member-name">إسلام</h3>
+                    <p class="member-position">الرؤية والاستراتيجية</p>
+                    <p class="member-bio">"رؤيتنا هي إثبات أن الجزائر قادرة على إنتاج ملابس تنافس العالمية في الجودة والتصميم."</p>
+                </div>
+                <div class="team-member">
+                    <div class="member-image">
+                        <img src="https://i.suar.me/wpvQ3/l" alt="فارس - مدير التصميم والإبداع">
+                    </div>
+                    <h3 class="member-name">فارس</h3>
+                    <p class="member-position">التصميم والإبداع</p>
+                    <p class="member-bio">"أعمل على دمج الأصالة الجزائرية مع الموضة العالمية لخلق تصاميم فريدة."</p>
+                </div>
+                <div class="team-member">
+                    <div class="member-image">
+                        <img src="https://i.suar.me/gPx5w/l" alt="لطفي - مدير العمليات">
+                    </div>
+                    <h3 class="member-name">لطفي</h3>
+                    <p class="member-position">الجودة والعمليات</p>
+                    <p class="member-bio">"لا نتنازل عن الجودة، كل قطعة تمر بمراقبة دقيقة قبل وصولها للعميل."</p>
+                </div>
+                <div class="team-member">
+                    <div class="member-image">
+                        <img src="https://i.suar.me/VzpoN/l" alt="منذر - مدير التسويق والمبيعات">
+                    </div>
+                    <h3 class="member-name">منذر</h3>
+                    <p class="member-position">التسويق والتواصل</p>
+                    <p class="member-bio">"هدفنا بناء علاقة ثقة مع عملائنا، حيث يصبحون سفراء لعلامتنا التجارية."</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- قسم معرض المنتجات -->
+    <section class="gallery" id="gallery">
+        <div class="container">
+            <h2 class="section-title">إبداعاتنا</h2>
+            <div class="gallery-grid">
+                <div class="gallery-item">
+                    <img src="https://i.suar.me/yEovZ/l" alt="منتج Vel-Don">
+                </div>
+                <div class="gallery-item">
+                    <img src="https://i.suar.me/mp2QG/l" alt="منتج Vel-Don">
+                </div>
+                <div class="gallery-item">
+                    <img src="https://i.suar.me/KB516/l" alt="منتج Vel-Don">
+                </div>
+                <div class="gallery-item">
+                    <img src="https://i.suar.me/Br3KN/l" alt="منتج Vel-Don">
+                </div>
+                <div class="gallery-item">
+                    <img src="https://i.suar.me/QXWdV/l" alt="منتج Vel-Don">
+                </div>
+                <div class="gallery-item">
+                    <img src="https://i.suar.me/62XKe/l" alt="منتج Vel-Don">
+                </div>
+                <div class="gallery-item">
+                    <img src="https://i.suar.me/vpjEw/l" alt="منتج Vel-Don">
+                </div>
+                <div class="gallery-item">
+                    <img src="https://i.suar.me/E7XKl/l" alt="منتج Vel-Don">
+                </div>
+                <div class="gallery-item">
+                    <img src="https://i.suar.me/WvNxx/l" alt="منتج Vel-Don">
+                </div>
+                <div class="gallery-item">
+                    <img src="https://i.suar.me/PzQOK/l" alt="منتج Vel-Don">
+                </div>
+                <div class="gallery-item">
+                    <img src="https://i.suar.me/XvO7E/l" alt="منتج Vel-Don">
+                </div>
+                <div class="gallery-item">
+                    <img src="https://i.suar.me/pplQ6/l" alt="منتج Vel-Don">
+                </div>
+                <div class="gallery-item">
+                    <img src="https://i.suar.me/npaQN/l" alt="منتج Vel-Don">
+                </div>
+                <div class="gallery-item">
+                    <img src="https://i.suar.me/5L0WV/l" alt="منتج Vel-Don">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- قسم الرؤية والقيم -->
+    <section class="values" id="values">
+        <div class="container">
+            <h2 class="section-title">ما نؤمن به</h2>
+            <div class="values-grid">
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-medal"></i>
+                    </div>
+                    <h3 class="value-title">الجودة أولاً</h3>
+                    <p>نستخدم أفضل المواد ونلتزم بأعلى معايير التصنيع لضمان رضا عملائنا.</p>
+                </div>
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-tshirt"></i>
+                    </div>
+                    <h3 class="value-title">الراحة والأناقة</h3>
+                    <p>تصاميمنا تجمع بين الموضة الحديثة والراحة اليومية لتناسب نمط الحياة العصري.</p>
+                </div>
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-hands-helping"></i>
+                    </div>
+                    <h3 class="value-title">دعم المحلي</h3>
+                    <p>نعمل مع موردين ومصنعين جزائريين لتنمية الاقتصاد المحلي.</p>
+                </div>
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <h3 class="value-title">التطوير المستمر</h3>
+                    <p>نستمع لملاحظات عملائنا ونطور منتجاتنا باستمرار لتلبية توقعاتهم.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- التذييل -->
+    <footer>
+        <div class="container">
+            <div class="footer-container">
+                <div class="footer-column">
+                    <h3>Vel-Don</h3>
+                    <p>علامة ملابس رجالية جزائرية تأسست عام 2025 بأيدي أربعة شباب طموحين.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                    </div>
+                </div>
+                <div class="footer-column">
+                    <h3>روابط سريعة</h3>
+                    <ul>
+                        <li><a href="#home">الرئيسية</a></li>
+                        <li><a href="#about">من نحن</a></li>
+                        <li><a href="#story">قصتنا</a></li>
+                        <li><a href="#team">فريقنا</a></li>
+                        <li><a href="#gallery">معرضنا</a></li>
+                        <li><a href="#values">قيمنا</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>تواصل معنا</h3>
+                    <ul>
+                        <li><i class="fas fa-envelope"></i> info@vel-don.dz</li>
+                        <li><i class="fas fa-phone"></i> +213 XXX XXX XXX</li>
+                        <li><i class="fas fa-map-marker-alt"></i> الجزائر العاصمة</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2025 Vel-Don. جميع الحقوق محفوظة.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // قائمة الجوال
+        const menuToggle = document.querySelector('.menu-toggle');
+        const nav = document.querySelector('nav');
+        
+        menuToggle.addEventListener('click', () => {
+            nav.classList.toggle('active');
+        });
+        
+        // إغلاق القائمة عند النقر على رابط
+        const navLinks = document.querySelectorAll('nav ul li a');
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                nav.classList.remove('active');
+            });
+        });
+        
+        // تأثير التمرير السلس
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>
