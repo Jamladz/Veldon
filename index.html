@@ -3,20 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Vel-Don - علامة ملابس رجالية جزائرية عالية الجودة تأسست بأيدي أربعة شباب طموحين">
     <title>Vel-Don - ملابس رجالية عالية الجودة</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
         /* Reset وأنماط أساسية */
+        :root {
+            --primary-color: #2e7d32;
+            --primary-dark: #1b5e20;
+            --primary-light: #4caf50;
+            --dark-color: #1a1a1a;
+            --light-color: #f8f9fa;
+            --gray-color: #666;
+            --light-gray: #ddd;
+            --white: #fff;
+            --black: #000;
+            --box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         body {
-            background-color: #f8f9fa;
-            color: #333;
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--light-color);
+            color: var(--dark-color);
             line-height: 1.6;
+            overflow-x: hidden;
         }
         
         /* التكيف مع اللغة العربية */
@@ -30,18 +48,81 @@
             width: 100%;
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 15px;
+            padding: 0 20px;
         }
         
-        /* الشريط العلوي */
+        .section-padding {
+            padding: 6rem 0;
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 4rem;
+            font-size: 2.5rem;
+            color: var(--dark-color);
+            position: relative;
+            display: inline-block;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: 700;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            right: 50%;
+            transform: translateX(50%);
+            width: 80px;
+            height: 4px;
+            background-color: var(--primary-color);
+            border-radius: 2px;
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: var(--white);
+            padding: 1rem 2.2rem;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+            font-size: 1rem;
+        }
+        
+        .btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.6);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+        }
+        
+        /* الشريط العلوي - محسن */
         header {
-            background-color: #1a1a1a;
-            color: white;
-            padding: 1rem 0;
-            position: sticky;
+            background-color: rgba(26, 26, 26, 0.95);
+            color: var(--white);
+            padding: 1.2rem 0;
+            position: fixed;
+            width: 100%;
             top: 0;
-            z-index: 100;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
+            transition: var(--transition);
+            backdrop-filter: blur(10px);
+        }
+        
+        header.scrolled {
+            padding: 0.8rem 0;
+            background-color: rgba(26, 26, 26, 0.98);
         }
         
         .header-container {
@@ -52,13 +133,28 @@
         
         .logo {
             font-size: 1.8rem;
-            font-weight: bold;
-            color: #fff;
+            font-weight: 700;
+            color: var(--white);
             text-decoration: none;
+            display: flex;
+            align-items: center;
+            transition: var(--transition);
+            z-index: 1001;
+        }
+        
+        .logo:hover {
+            transform: scale(1.05);
         }
         
         .logo span {
-            color: #4CAF50;
+            color: var(--primary-light);
+            margin-right: 5px;
+        }
+        
+        .logo-icon {
+            font-size: 1.5rem;
+            margin-left: 8px;
+            color: var(--primary-light);
         }
         
         nav ul {
@@ -67,127 +163,232 @@
         }
         
         nav ul li {
-            margin-left: 1.5rem;
+            margin-left: 1.8rem;
+            position: relative;
         }
         
         nav ul li a {
-            color: white;
+            color: var(--white);
             text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s;
+            font-weight: 600;
+            transition: var(--transition);
+            padding: 5px 0;
+            position: relative;
+            font-size: 1.05rem;
+        }
+        
+        nav ul li a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            right: 0;
+            background-color: var(--primary-light);
+            transition: var(--transition);
+        }
+        
+        nav ul li a:hover::after {
+            width: 100%;
         }
         
         nav ul li a:hover {
-            color: #4CAF50;
+            color: var(--primary-light);
         }
         
         .menu-toggle {
             display: none;
             cursor: pointer;
-            font-size: 1.5rem;
+            font-size: 1.8rem;
+            color: var(--white);
+            transition: var(--transition);
+            z-index: 1001;
         }
         
-        /* قسم البطل */
+        .menu-toggle:hover {
+            color: var(--primary-light);
+        }
+        
+        /* قسم البطل - محسن */
         .hero {
             background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
             background-size: cover;
             background-position: center;
-            color: white;
-            padding: 5rem 0;
+            background-attachment: fixed;
+            color: var(--white);
+            padding: 8rem 0 5rem;
             text-align: center;
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.2) 0%, rgba(26, 26, 26, 0.8) 100%);
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            animation: fadeInUp 1s ease;
+            padding: 0 20px;
         }
         
         .hero h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+            line-height: 1.3;
+            font-weight: 700;
         }
         
         .hero p {
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             max-width: 800px;
-            margin: 0 auto 2rem;
+            margin: 0 auto 2.5rem;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
         }
         
-        .btn {
-            display: inline-block;
-            background-color: #4CAF50;
-            color: white;
-            padding: 0.8rem 1.8rem;
-            border-radius: 4px;
-            text-decoration: none;
-            font-weight: bold;
-            transition: background-color 0.3s;
-        }
-        
-        .btn:hover {
-            background-color: #45a049;
-        }
-        
-        /* قسم من نحن */
+        /* قسم من نحن - محسن */
         .about {
-            padding: 4rem 0;
-            background-color: white;
+            position: relative;
+            background-color: var(--white);
         }
         
-        .section-title {
-            text-align: center;
-            margin-bottom: 3rem;
-            font-size: 2.2rem;
-            color: #1a1a1a;
+        .about::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 40%;
+            height: 100%;
+            background-color: var(--light-color);
+            z-index: 0;
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 30% 100%);
         }
         
         .about-content {
             display: flex;
             flex-wrap: wrap;
             align-items: center;
-            gap: 2rem;
+            gap: 3rem;
+            position: relative;
+            z-index: 1;
         }
         
         .about-text {
             flex: 1;
             min-width: 300px;
+            padding: 2.5rem;
+            background-color: var(--white);
+            border-radius: 10px;
+            box-shadow: var(--box-shadow);
+        }
+        
+        .about-text p {
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--gray-color);
         }
         
         .about-image {
             flex: 1;
             min-width: 300px;
+            position: relative;
         }
         
         .about-image img {
             width: 100%;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+            transition: var(--transition);
         }
         
-        /* قسم قصة التأسيس */
+        .about-image:hover img {
+            transform: scale(1.03);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+        }
+        
+        .about-image::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 5px solid var(--primary-color);
+            border-radius: 15px;
+            top: -20px;
+            right: -20px;
+            z-index: -1;
+            transition: var(--transition);
+        }
+        
+        .about-image:hover::before {
+            top: -15px;
+            right: -15px;
+        }
+        
+        /* قسم قصة التأسيس - محسن */
         .foundation-story {
-            padding: 4rem 0;
-            background-color: #f8f9fa;
+            position: relative;
+            overflow: hidden;
+            background-color: var(--light-color);
+        }
+        
+        .foundation-story::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80') no-repeat center center;
+            background-size: cover;
+            opacity: 0.05;
+            z-index: 0;
         }
         
         .story-timeline {
             position: relative;
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             padding: 0 20px;
+            z-index: 1;
         }
         
         .story-timeline::before {
             content: '';
             position: absolute;
-            width: 2px;
-            background-color: #4CAF50;
+            width: 4px;
+            background: linear-gradient(to bottom, var(--primary-color), var(--dark-color));
             top: 0;
             bottom: 0;
             right: 50%;
-            margin-right: -1px;
+            margin-right: -2px;
         }
         
         .timeline-item {
-            padding: 10px 40px;
+            padding: 15px 50px;
             position: relative;
             width: 50%;
             box-sizing: border-box;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s ease;
+        }
+        
+        .timeline-item.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
         
         .timeline-item:nth-child(odd) {
@@ -201,154 +402,380 @@
         .timeline-item::after {
             content: '';
             position: absolute;
-            width: 20px;
-            height: 20px;
-            background-color: #1a1a1a;
-            border: 3px solid #4CAF50;
+            width: 25px;
+            height: 25px;
+            background-color: var(--dark-color);
+            border: 4px solid var(--primary-color);
             border-radius: 50%;
             top: 15px;
-            right: -10px;
+            right: -12px;
             z-index: 1;
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
         }
         
         .timeline-item:nth-child(even)::after {
             right: auto;
-            left: -10px;
+            left: -12px;
         }
         
         .timeline-content {
-            padding: 20px;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            background-color: var(--white);
+            border-radius: 10px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
         }
         
-        /* قسم الفريق */
+        .timeline-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 5px;
+            height: 100%;
+            background-color: var(--primary-color);
+        }
+        
+        .timeline-content:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+        
+        .timeline-content h3 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 1.4rem;
+        }
+        
+        .timeline-content p {
+            color: var(--gray-color);
+            line-height: 1.7;
+        }
+        
+        /* قسم الفريق - محسن */
         .team {
-            padding: 4rem 0;
-            background-color: white;
+            position: relative;
+            background-color: var(--white);
+        }
+        
+        .team::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 100%;
+            height: 50%;
+            background-color: var(--light-color);
+            z-index: 0;
+            clip-path: polygon(0 40%, 100% 0, 100% 100%, 0% 100%);
         }
         
         .team-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 2rem;
+            grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+            gap: 3rem;
+            position: relative;
+            z-index: 1;
         }
         
         .team-member {
             text-align: center;
+            background-color: var(--white);
+            border-radius: 10px;
+            padding: 2.5rem 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .team-member:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .team-member::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(to right, var(--primary-color), var(--dark-color));
         }
         
         .member-image {
-            width: 180px;
-            height: 180px;
+            width: 200px;
+            height: 200px;
             border-radius: 50%;
             overflow: hidden;
-            margin: 0 auto 1rem;
-            border: 5px solid #f8f9fa;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            margin: 0 auto 1.5rem;
+            border: 5px solid var(--light-color);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+            position: relative;
+        }
+        
+        .team-member:hover .member-image {
+            transform: scale(1.05);
+            border-color: var(--primary-color);
         }
         
         .member-image img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            transition: var(--transition);
+        }
+        
+        .team-member:hover .member-image img {
+            transform: scale(1.1);
         }
         
         .member-name {
-            font-size: 1.2rem;
-            margin-bottom: 0.3rem;
+            font-size: 1.4rem;
+            margin-bottom: 0.5rem;
+            color: var(--dark-color);
+            font-weight: 700;
         }
         
         .member-position {
-            color: #666;
-            font-size: 0.9rem;
+            color: var(--primary-color);
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: inline-block;
+            padding: 0.3rem 1rem;
+            background-color: rgba(76, 175, 80, 0.1);
+            border-radius: 20px;
         }
         
-        /* قسم معرض المنتجات */
+        .member-bio {
+            color: var(--gray-color);
+            font-style: italic;
+            margin-top: 1rem;
+            position: relative;
+            padding-top: 1rem;
+            font-size: 0.95rem;
+        }
+        
+        .member-bio::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 50%;
+            transform: translateX(50%);
+            width: 50px;
+            height: 2px;
+            background-color: var(--primary-color);
+        }
+        
+        /* قسم معرض المنتجات - محسن */
         .gallery {
-            padding: 4rem 0;
-            background-color: #f8f9fa;
+            background-color: var(--light-color);
         }
         
         .gallery-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
         }
         
         .gallery-item {
             position: relative;
             overflow: hidden;
-            border-radius: 8px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             aspect-ratio: 1/1;
+            transition: var(--transition);
+        }
+        
+        .gallery-item:hover {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
         }
         
         .gallery-item img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.5s;
+            transition: var(--transition);
         }
         
         .gallery-item:hover img {
-            transform: scale(1.05);
+            transform: scale(1.1);
+            filter: brightness(1.1);
         }
         
-        /* قسم الرؤية والقيم */
+        .gallery-item::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+            opacity: 0;
+            transition: var(--transition);
+        }
+        
+        .gallery-item:hover::after {
+            opacity: 1;
+        }
+        
+        .gallery-caption {
+            position: absolute;
+            bottom: -50px;
+            left: 0;
+            width: 100%;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            color: var(--white);
+            transition: var(--transition);
+            z-index: 1;
+        }
+        
+        .gallery-item:hover .gallery-caption {
+            bottom: 0;
+        }
+        
+        /* قسم الرؤية والقيم - محسن */
         .values {
-            padding: 4rem 0;
-            background-color: white;
+            position: relative;
+            background-color: var(--white);
+        }
+        
+        .values::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 50%;
+            background-color: var(--light-color);
+            z-index: 0;
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 60%);
         }
         
         .values-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 2rem;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2.5rem;
+            position: relative;
+            z-index: 1;
         }
         
         .value-card {
             text-align: center;
-            padding: 2rem;
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            transition: transform 0.3s;
+            padding: 2.5rem 2rem;
+            background-color: var(--white);
+            border-radius: 10px;
+            transition: var(--transition);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            position: relative;
+            overflow: hidden;
         }
         
         .value-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .value-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(to right, var(--primary-color), var(--dark-color));
         }
         
         .value-icon {
-            font-size: 2.5rem;
-            color: #4CAF50;
-            margin-bottom: 1rem;
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            transition: var(--transition);
+        }
+        
+        .value-card:hover .value-icon {
+            transform: rotateY(180deg);
         }
         
         .value-title {
-            font-size: 1.3rem;
-            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            margin-bottom: 1.2rem;
+            color: var(--dark-color);
+            position: relative;
+            padding-bottom: 10px;
+            font-weight: 700;
         }
         
-        /* التذييل */
+        .value-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 50%;
+            transform: translateX(50%);
+            width: 50px;
+            height: 3px;
+            background-color: var(--primary-color);
+        }
+        
+        .value-card p {
+            color: var(--gray-color);
+            line-height: 1.8;
+        }
+        
+        /* التذييل - محسن */
         footer {
-            background-color: #1a1a1a;
-            color: white;
-            padding: 3rem 0 1rem;
+            background-color: var(--dark-color);
+            color: var(--white);
+            padding: 5rem 0 2rem;
+            position: relative;
+        }
+        
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 15px;
+            background: linear-gradient(to right, var(--primary-color), var(--dark-color));
         }
         
         .footer-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            margin-bottom: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 3rem;
+            margin-bottom: 3rem;
         }
         
         .footer-column h3 {
-            font-size: 1.3rem;
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            color: var(--primary-color);
+            position: relative;
+            padding-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .footer-column h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 50px;
+            height: 3px;
+            background-color: var(--primary-color);
+        }
+        
+        .footer-column p {
+            color: var(--light-gray);
+            line-height: 1.8;
             margin-bottom: 1.5rem;
-            color: #4CAF50;
         }
         
         .footer-column ul {
@@ -356,32 +783,85 @@
         }
         
         .footer-column ul li {
-            margin-bottom: 0.8rem;
+            margin-bottom: 1rem;
+            transition: var(--transition);
+        }
+        
+        .footer-column ul li:hover {
+            transform: translateX(-5px);
         }
         
         .footer-column ul li a {
-            color: #ddd;
+            color: var(--light-gray);
             text-decoration: none;
-            transition: color 0.3s;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
         }
         
         .footer-column ul li a:hover {
-            color: #4CAF50;
+            color: var(--primary-color);
+        }
+        
+        .footer-column ul li i {
+            margin-left: 8px;
+            color: var(--primary-color);
         }
         
         .social-links {
             display: flex;
-            gap: 1rem;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
         }
         
         .social-links a {
-            color: white;
-            font-size: 1.5rem;
-            transition: color 0.3s;
+            color: var(--white);
+            font-size: 1.2rem;
+            transition: var(--transition);
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .social-links a:hover {
-            color: #4CAF50;
+            color: var(--white);
+            background-color: var(--primary-color);
+            transform: translateY(-5px);
+        }
+        
+        .newsletter-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .newsletter-form input {
+            padding: 0.8rem 1rem;
+            border-radius: 30px;
+            border: none;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+            font-family: 'Tajawal', sans-serif;
+            transition: var(--transition);
+        }
+        
+        .newsletter-form input:focus {
+            outline: none;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .newsletter-form input::placeholder {
+            color: var(--light-gray);
+        }
+        
+        .newsletter-form .btn {
+            width: 100%;
+            padding: 0.8rem;
+            font-size: 0.95rem;
         }
         
         .copyright {
@@ -392,21 +872,161 @@
             color: #aaa;
         }
         
+        /* تأثيرات الحركة */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        /* زر العودة للأعلى */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background-color: var(--primary-color);
+            color: var(--white);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+            z-index: 999;
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.5);
+            border: none;
+        }
+        
+        .back-to-top.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .back-to-top:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-5px);
+        }
+        
+        /* تأثيرات التحميل */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--dark-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s, visibility 0.5s;
+        }
+        
+        .loading-overlay.fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(76, 175, 80, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+        
+        .loading-text {
+            color: var(--white);
+            font-size: 1.2rem;
+            margin-top: 20px;
+        }
+        
+        /* شريط التقدم */
+        .progress-container {
+            width: 100%;
+            height: 5px;
+            background: transparent;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1001;
+        }
+        
+        .progress-bar {
+            height: 5px;
+            background: linear-gradient(to right, var(--primary-color), var(--primary-dark));
+            width: 0%;
+            transition: width 0.1s;
+        }
+        
         /* الوسائط المتعددة للاستجابة */
+        @media (max-width: 992px) {
+            .hero h1 {
+                font-size: 3rem;
+            }
+            
+            .section-title {
+                font-size: 2.2rem;
+            }
+            
+            .about::before {
+                width: 60%;
+            }
+        }
+        
         @media (max-width: 768px) {
             .header-container {
-                flex-direction: column;
-                align-items: flex-start;
+                flex-direction: row;
+                align-items: center;
             }
             
             nav {
-                width: 100%;
+                width: auto;
                 display: none;
-                margin-top: 1rem;
+                position: fixed;
+                top: 0;
+                right: 0;
+                background-color: rgba(26, 26, 26, 0.98);
+                width: 70%;
+                height: 100vh;
+                padding: 6rem 2rem 2rem;
+                box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
+                backdrop-filter: blur(10px);
+                z-index: 1000;
+                transition: var(--transition);
             }
             
             nav.active {
                 display: block;
+                animation: slideIn 0.3s ease;
+            }
+            
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                }
+                to {
+                    transform: translateX(0);
+                }
             }
             
             nav ul {
@@ -415,30 +1035,40 @@
             
             nav ul li {
                 margin: 0;
-                margin-bottom: 0.5rem;
+                margin-bottom: 1.5rem;
+            }
+            
+            nav ul li a {
+                font-size: 1.1rem;
+                padding: 0.5rem 0;
             }
             
             .menu-toggle {
                 display: block;
-                position: absolute;
-                top: 1rem;
-                left: 1rem;
+            }
+            
+            .hero {
+                padding: 7rem 0 4rem;
+                min-height: auto;
+                background-attachment: scroll;
             }
             
             .hero h1 {
-                font-size: 2.2rem;
+                font-size: 2.5rem;
             }
             
             .hero p {
-                font-size: 1rem;
-            }
-            
-            .about-content {
-                flex-direction: column;
+                font-size: 1.1rem;
             }
             
             .section-title {
-                font-size: 1.8rem;
+                font-size: 2rem;
+            }
+            
+            .about::before {
+                width: 100%;
+                height: 60%;
+                clip-path: polygon(0 0, 100% 0, 100% 100%, 0 80%);
             }
             
             .story-timeline::before {
@@ -463,30 +1093,78 @@
                 right: 21px;
                 left: auto;
             }
-        }
-        
-        @media (max-width: 480px) {
-            .hero {
-                padding: 3rem 0;
+            
+            .team::after {
+                height: 40%;
+                clip-path: polygon(0 30%, 100% 0, 100% 100%, 0% 100%);
             }
             
+            .values::before {
+                height: 40%;
+                clip-path: polygon(0 0, 100% 0, 100% 100%, 0 70%);
+            }
+            
+            .footer-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 576px) {
             .hero h1 {
-                font-size: 1.8rem;
+                font-size: 2.2rem;
+            }
+            
+            .hero p {
+                font-size: 1rem;
             }
             
             .btn {
-                padding: 0.6rem 1.4rem;
+                padding: 0.8rem 1.8rem;
+            }
+            
+            .section-title {
+                font-size: 1.8rem;
+            }
+            
+            .about-text, .about-image {
+                min-width: 100%;
+            }
+            
+            .member-image {
+                width: 170px;
+                height: 170px;
+            }
+            
+            .footer-container {
+                grid-template-columns: 1fr;
+            }
+            
+            nav {
+                width: 85%;
             }
         }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
+    <!-- شاشة التحميل -->
+    <div class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Vel-Don جاري التحميل...</div>
+    </div>
+
+    <!-- شريط التقدم -->
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
     <!-- الشريط العلوي -->
     <header>
         <div class="container header-container">
-            <a href="#" class="logo">Vel<span>-Don</span></a>
-            <div class="menu-toggle">☰</div>
+            <a href="#" class="logo">
+                <span>Vel-Don</span>
+                <i class="fas fa-tshirt logo-icon"></i>
+            </a>
+            <button class="menu-toggle" aria-label="قائمة التنقل">☰</button>
             <nav>
                 <ul>
                     <li><a href="#home">الرئيسية</a></li>
@@ -495,6 +1173,7 @@
                     <li><a href="#team">فريقنا</a></li>
                     <li><a href="#gallery">معرضنا</a></li>
                     <li><a href="#values">قيمنا</a></li>
+                    <li><a href="#contact">اتصل بنا</a></li>
                 </ul>
             </nav>
         </div>
@@ -502,15 +1181,18 @@
 
     <!-- قسم البطل -->
     <section class="hero" id="home">
-        <div class="container">
+        <div class="hero-content">
             <h1>Vel-Don: رحلة تميز في عالم الموضة الرجالية</h1>
             <p>نحن أربعة أصدقاء قررنا تحويل شغفنا بالموضة إلى علامة تجارية جزائرية تقدم ملابس رجالية عالية الجودة.</p>
-            <a href="#story" class="btn">اكتشف قصتنا</a>
+            <div class="hero-buttons">
+                <a href="#story" class="btn">اكتشف قصتنا</a>
+                <a href="#gallery" class="btn btn-outline">شاهد منتجاتنا</a>
+            </div>
         </div>
     </section>
 
     <!-- قسم من نحن -->
-    <section class="about" id="about">
+    <section class="about section-padding" id="about">
         <div class="container">
             <h2 class="section-title">من نحن</h2>
             <div class="about-content">
@@ -518,41 +1200,49 @@
                     <p>نحن أربعة مؤسسين لشركة Vel-Don، نؤمن بقوة العمل الجماعي وقدرتنا على إحداث تغيير في سوق الموضة الرجالية الجزائرية.</p>
                     <p>بدءاً من فكرة بسيطة في مقهى بالعاصمة، تحول حلمنا إلى واقع ملموس بفضل المثابرة والعمل الجاد.</p>
                     <p>نفتخر بأننا نقدم منتجات مصنوعة بأيدي جزائرية، مع الحفاظ على أعلى معايير الجودة والتصميم العصري.</p>
+                    <p>نسعى لأن نكون الوجهة الأولى للرجل العصري الذي يبحث عن الجودة والأصالة في آن واحد.</p>
+                    <a href="#team" class="btn" style="margin-top: 1rem;">تعرف على فريقنا</a>
                 </div>
                 <div class="about-image">
-                    <img src="https://images.unsplash.com/photo-1602810318383-1a7702786bdf?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="فريق Vel-Don">
+                    <img src="https://images.unsplash.com/photo-1602810318383-1a7702786bdf?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="فريق Vel-Don يعمل معاً">
                 </div>
             </div>
         </div>
     </section>
 
     <!-- قسم قصة التأسيس -->
-    <section class="foundation-story" id="story">
+    <section class="foundation-story section-padding" id="story">
         <div class="container">
             <h2 class="section-title">رحلة التأسيس</h2>
             <div class="story-timeline">
                 <div class="timeline-item">
                     <div class="timeline-content">
                         <h3>بداية الفكرة - يناير 2024</h3>
-                        <p>التقينا نحن الأربعة في مقهى بالعاصمة، واكتشفنا أننا نتشارك نفس الشغف بإنشاء علامة ملابس جزائرية عالية الجودة.</p>
+                        <p>التقينا نحن الأربعة في مقهى بالعاصمة، واكتشفنا أننا نتشارك نفس الشغف بإنشاء علامة ملابس جزائرية عالية الجودة. بدأنا بتحديد رؤيتنا وأهدافنا الأساسية.</p>
                     </div>
                 </div>
                 <div class="timeline-item">
                     <div class="timeline-content">
                         <h3>البحث والتطوير - مارس 2024</h3>
-                        <p>قمنا بدراسة السوق بعناية واختبار مختلف أنواع الأقمشة والخياطات لتحديد ما يناسب عملائنا.</p>
+                        <p>قمنا بدراسة السوق بعناية واختبار مختلف أنواع الأقمشة والخياطات لتحديد ما يناسب عملائنا. زارنا العديد من المصانع المحلية للعثور على أفضل الشركاء.</p>
                     </div>
                 </div>
                 <div class="timeline-item">
                     <div class="timeline-content">
                         <h3>التأسيس الرسمي - يناير 2025</h3>
-                        <p>سجلنا العلامة التجارية رسمياً وبدأنا الإنتاج الأولي بميزانية محدودة لكن بإرادة كبيرة.</p>
+                        <p>سجلنا العلامة التجارية رسمياً وبدأنا الإنتاج الأولي بميزانية محدودة لكن بإرادة كبيرة. صممنا أول مجموعة تضم 20 قطعة مختلفة.</p>
                     </div>
                 </div>
                 <div class="timeline-item">
                     <div class="timeline-content">
                         <h3>الانطلاق التجاري - مايو 2025</h3>
-                        <p>أطلقنا أول مجموعة منتجاتنا وحصلنا على ردود فعل إيجابية من العملاء، مما شجعنا على المضي قدماً.</p>
+                        <p>أطلقنا أول مجموعة منتجاتنا وحصلنا على ردود فعل إيجابية من العملاء، مما شجعنا على المضي قدماً. حققنا أول 100 عملية بيع خلال شهرين فقط.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <h3>التوسع المستقبلي - 2026</h3>
+                        <p>نخطط لفتح متجرنا الأول وتوسيع خط الإنتاج ليشمل المزيد من الخيارات. هدفنا أن نصل إلى كافة أنحاء الوطن العربي.</p>
                     </div>
                 </div>
             </div>
@@ -560,9 +1250,9 @@
     </section>
 
     <!-- قسم الفريق -->
-    <section class="team" id="team">
+    <section class="team section-padding" id="team">
         <div class="container">
-            <h2 class="section-title">نحن الأربعة المؤسسون</h2>
+            <h2 class="section-title">فريقنا المبدع</h2>
             <div class="team-grid">
                 <div class="team-member">
                     <div class="member-image">
@@ -570,7 +1260,7 @@
                     </div>
                     <h3 class="member-name">إسلام</h3>
                     <p class="member-position">الرؤية والاستراتيجية</p>
-                    <p class="member-bio">"رؤيتنا هي إثبات أن الجزائر قادرة على إنتاج ملابس تنافس العالمية في الجودة والتصميم."</p>
+                    <p class="member-bio">"رؤيتنا هي إثبات أن الجزائر قادرة على إنتاج ملابس تنافس العالمية في الجودة والتصميم. نؤمن بأن الإبداع لا يعرف حدوداً."</p>
                 </div>
                 <div class="team-member">
                     <div class="member-image">
@@ -578,7 +1268,7 @@
                     </div>
                     <h3 class="member-name">فارس</h3>
                     <p class="member-position">التصميم والإبداع</p>
-                    <p class="member-bio">"أعمل على دمج الأصالة الجزائرية مع الموضة العالمية لخلق تصاميم فريدة."</p>
+                    <p class="member-bio">"أعمل على دمج الأصالة الجزائرية مع الموضة العالمية لخلق تصاميم فريدة. كل قطعة تحمل جزءاً من هويتنا الثقافية."</p>
                 </div>
                 <div class="team-member">
                     <div class="member-image">
@@ -586,7 +1276,7 @@
                     </div>
                     <h3 class="member-name">لطفي</h3>
                     <p class="member-position">الجودة والعمليات</p>
-                    <p class="member-bio">"لا نتنازل عن الجودة، كل قطعة تمر بمراقبة دقيقة قبل وصولها للعميل."</p>
+                    <p class="member-bio">"لا نتنازل عن الجودة، كل قطعة تمر بمراقبة دقيقة قبل وصولها للعميل. نضمن أن كل منتج يستحق اسم Vel-Don."</p>
                 </div>
                 <div class="team-member">
                     <div class="member-image">
@@ -594,96 +1284,142 @@
                     </div>
                     <h3 class="member-name">منذر</h3>
                     <p class="member-position">التسويق والتواصل</p>
-                    <p class="member-bio">"هدفنا بناء علاقة ثقة مع عملائنا، حيث يصبحون سفراء لعلامتنا التجارية."</p>
+                    <p class="member-bio">"هدفنا بناء علاقة ثقة مع عملائنا، حيث يصبحون سفراء لعلامتنا التجارية. رضاهم هو شعارنا الدائم."</p>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- قسم معرض المنتجات -->
-    <section class="gallery" id="gallery">
+    <section class="gallery section-padding" id="gallery">
         <div class="container">
-            <h2 class="section-title">إبداعاتنا</h2>
+            <h2 class="section-title">معرض منتجاتنا</h2>
             <div class="gallery-grid">
                 <div class="gallery-item">
-                    <img src="https://i.suar.me/yEovZ/l" alt="منتج Vel-Don">
+                    <img src="https://i.suar.me/yEovZ/l" alt="قميص Vel-Don كلاسيك">
+                    <div class="gallery-caption">قميص كلاسيك - مجموعة ربيع 2025</div>
                 </div>
                 <div class="gallery-item">
-                    <img src="https://i.suar.me/mp2QG/l" alt="منتج Vel-Don">
+                    <img src="https://i.suar.me/mp2QG/l" alt="جاكيت جلد Vel-Don">
+                    <div class="gallery-caption">جاكيت جلد - إصدار محدود</div>
                 </div>
                 <div class="gallery-item">
-                    <img src="https://i.suar.me/KB516/l" alt="منتج Vel-Don">
+                    <img src="https://i.suar.me/KB516/l" alt="بنطال Vel-Dون رسمي">
+                    <div class="gallery-caption">بنطال رسمي - خط المكتب</div>
                 </div>
                 <div class="gallery-item">
-                    <img src="https://i.suar.me/Br3KN/l" alt="منتج Vel-Don">
+                    <img src="https://i.suar.me/Br3KN/l" alt="ترنج Vel-Don صيفي">
+                    <div class="gallery-caption">ترنج صيفي - مجموعة الألوان</div>
                 </div>
                 <div class="gallery-item">
-                    <img src="https://i.suar.me/QXWdV/l" alt="منتج Vel-Don">
+                    <img src="https://i.suar.me/QXWdV/l" alt="بالطو Vel-Don شتوي">
+                    <div class="gallery-caption">بالطو شتوي - خط التدفئة</div>
                 </div>
                 <div class="gallery-item">
-                    <img src="https://i.suar.me/62XKe/l" alt="منتج Vel-Don">
+                    <img src="https://i.suar.me/62XKe/l" alt="بدلة Vel-Don رسمية">
+                    <div class="gallery-caption">بدلة رسمية - خط رجال الأعمال</div>
                 </div>
                 <div class="gallery-item">
-                    <img src="https://i.suar.me/vpjEw/l" alt="منتج Vel-Don">
+                    <img src="https://i.suar.me/vpjEw/l" alt="تيشيرت Vel-Don كاجوال">
+                    <div class="gallery-caption">تيشيرت كاجوال - خط الشباب</div>
                 </div>
                 <div class="gallery-item">
-                    <img src="https://i.suar.me/E7XKl/l" alt="منتج Vel-Don">
+                    <img src="https://i.suar.me/E7XKl/l" alt="جينز Vel-Don">
+                    <div class="gallery-caption">جينز - مجموعة أساسية</div>
                 </div>
-                <div class="gallery-item">
-                    <img src="https://i.suar.me/WvNxx/l" alt="منتج Vel-Don">
-                </div>
-                <div class="gallery-item">
-                    <img src="https://i.suar.me/PzQOK/l" alt="منتج Vel-Don">
-                </div>
-                <div class="gallery-item">
-                    <img src="https://i.suar.me/XvO7E/l" alt="منتج Vel-Don">
-                </div>
-                <div class="gallery-item">
-                    <img src="https://i.suar.me/pplQ6/l" alt="منتج Vel-Don">
-                </div>
-                <div class="gallery-item">
-                    <img src="https://i.suar.me/npaQN/l" alt="منتج Vel-Don">
-                </div>
-                <div class="gallery-item">
-                    <img src="https://i.suar.me/5L0WV/l" alt="منتج Vel-Don">
-                </div>
+            </div>
+            <div style="text-align: center; margin-top: 3rem;">
+                <a href="#" class="btn">استعرض جميع المنتجات</a>
             </div>
         </div>
     </section>
 
     <!-- قسم الرؤية والقيم -->
-    <section class="values" id="values">
+    <section class="values section-padding" id="values">
         <div class="container">
-            <h2 class="section-title">ما نؤمن به</h2>
+            <h2 class="section-title">قيمنا الأساسية</h2>
             <div class="values-grid">
                 <div class="value-card">
                     <div class="value-icon">
                         <i class="fas fa-medal"></i>
                     </div>
                     <h3 class="value-title">الجودة أولاً</h3>
-                    <p>نستخدم أفضل المواد ونلتزم بأعلى معايير التصنيع لضمان رضا عملائنا.</p>
+                    <p>نستخدم أفضل المواد ونلتزم بأعلى معايير التصنيع لضمان رضا عملائنا. كل قطعة تخضع لفحوصات دقيقة قبل الشحن.</p>
                 </div>
                 <div class="value-card">
                     <div class="value-icon">
                         <i class="fas fa-tshirt"></i>
                     </div>
                     <h3 class="value-title">الراحة والأناقة</h3>
-                    <p>تصاميمنا تجمع بين الموضة الحديثة والراحة اليومية لتناسب نمط الحياة العصري.</p>
+                    <p>تصاميمنا تجمع بين الموضة الحديثة والراحة اليومية لتناسب نمط الحياة العصري. نخلق ملابس عملية دون التضحية بالأناقة.</p>
                 </div>
                 <div class="value-card">
                     <div class="value-icon">
                         <i class="fas fa-hands-helping"></i>
                     </div>
                     <h3 class="value-title">دعم المحلي</h3>
-                    <p>نعمل مع موردين ومصنعين جزائريين لتنمية الاقتصاد المحلي.</p>
+                    <p>نعمل مع موردين ومصنعين جزائريين لتنمية الاقتصاد المحلي. نؤمن بأن التصنيع المحلي هو مستقبل الصناعة في الجزائر.</p>
                 </div>
                 <div class="value-card">
                     <div class="value-icon">
                         <i class="fas fa-lightbulb"></i>
                     </div>
                     <h3 class="value-title">التطوير المستمر</h3>
-                    <p>نستمع لملاحظات عملائنا ونطور منتجاتنا باستمرار لتلبية توقعاتهم.</p>
+                    <p>نستمع لملاحظات عملائنا ونطور منتجاتنا باستمرار لتلبية توقعاتهم. الابتكار هو جزء أساسي من ثقافتنا.</p>
                 </div>
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-leaf"></i>
+                    </div>
+                    <h3 class="value-title">الاستدامة</h3>
+                    <p>نسعى لاعتماد ممارسات صديقة للبيئة في تصنيعنا. نستخدم مواد قابلة لإعادة التدوير ونقلل من الهدر.</p>
+                </div>
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <h3 class="value-title">الرعاية المجتمعية</h3>
+                    <p>نشارك في مبادرات مجتمعية ونخصص جزءاً من أرباحنا لدعم الشباب المبدعين في مجال الموضة.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- قسم اتصل بنا -->
+    <section class="contact section-padding" id="contact">
+        <div class="container">
+            <h2 class="section-title">تواصل معنا</h2>
+            <div class="contact-container">
+                <div class="contact-info">
+                    <h3>بيانات التواصل</h3>
+                    <ul>
+                        <li><i class="fas fa-map-marker-alt"></i> الجزائر العاصمة، حي النهضة</li>
+                        <li><i class="fas fa-phone"></i> +213 123 456 789</li>
+                        <li><i class="fas fa-envelope"></i> info@vel-don.dz</li>
+                        <li><i class="fas fa-clock"></i> الأحد - الخميس: 8ص - 5م</li>
+                    </ul>
+                    <div class="social-links">
+                        <a href="#" aria-label="فيسبوك"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" aria-label="إنستغرام"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="تويتر"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="لينكد إن"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <form class="contact-form">
+                    <div class="form-group">
+                        <input type="text" placeholder="اسمك الكامل" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" placeholder="بريدك الإلكتروني" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="tel" placeholder="رقم هاتفك">
+                    </div>
+                    <div class="form-group">
+                        <textarea placeholder="رسالتك" rows="5" required></textarea>
+                    </div>
+                    <button type="submit" class="btn">إرسال الرسالة</button>
+                </form>
             </div>
         </div>
     </section>
@@ -694,46 +1430,76 @@
             <div class="footer-container">
                 <div class="footer-column">
                     <h3>Vel-Don</h3>
-                    <p>علامة ملابس رجالية جزائرية تأسست عام 2025 بأيدي أربعة شباب طموحين.</p>
+                    <p>علامة ملابس رجالية جزائرية تأسست عام 2025 بأيدي أربعة شباب طموحين. نقدم منتجات عالية الجودة تحمل بصمة الهوية الجزائرية.</p>
                     <div class="social-links">
                         <a href="#"><i class="fab fa-facebook-f"></i></a>
                         <a href="#"><i class="fab fa-instagram"></i></a>
                         <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
                     </div>
                 </div>
                 <div class="footer-column">
                     <h3>روابط سريعة</h3>
                     <ul>
-                        <li><a href="#home">الرئيسية</a></li>
-                        <li><a href="#about">من نحن</a></li>
-                        <li><a href="#story">قصتنا</a></li>
-                        <li><a href="#team">فريقنا</a></li>
-                        <li><a href="#gallery">معرضنا</a></li>
-                        <li><a href="#values">قيمنا</a></li>
+                        <li><a href="#home"><i class="fas fa-chevron-left"></i> الرئيسية</a></li>
+                        <li><a href="#about"><i class="fas fa-chevron-left"></i> من نحن</a></li>
+                        <li><a href="#story"><i class="fas fa-chevron-left"></i> قصتنا</a></li>
+                        <li><a href="#team"><i class="fas fa-chevron-left"></i> فريقنا</a></li>
+                        <li><a href="#gallery"><i class="fas fa-chevron-left"></i> معرضنا</a></li>
+                        <li><a href="#values"><i class="fas fa-chevron-left"></i> قيمنا</a></li>
                     </ul>
                 </div>
                 <div class="footer-column">
-                    <h3>تواصل معنا</h3>
+                    <h3>خدماتنا</h3>
                     <ul>
-                        <li><i class="fas fa-envelope"></i> info@vel-don.dz</li>
-                        <li><i class="fas fa-phone"></i> +213 XXX XXX XXX</li>
-                        <li><i class="fas fa-map-marker-alt"></i> الجزائر العاصمة</li>
+                        <li><a href="#"><i class="fas fa-chevron-left"></i> التوصيل السريع</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-left"></i> الدفع عند الاستلام</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-left"></i> الإرجاع والاستبدال</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-left"></i> خدمة العملاء</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-left"></i> الأسئلة الشائعة</a></li>
                     </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>النشرة البريدية</h3>
+                    <p>اشترك ليصلك كل جديد عن منتجاتنا وعروضنا الحصرية.</p>
+                    <form class="newsletter-form">
+                        <input type="email" placeholder="بريدك الإلكتروني" required>
+                        <button type="submit" class="btn">اشتراك</button>
+                    </form>
                 </div>
             </div>
             <div class="copyright">
-                <p>&copy; 2025 Vel-Don. جميع الحقوق محفوظة.</p>
+                <p>&copy; 2025 Vel-Don. جميع الحقوق محفوظة. صمم بحب في الجزائر</p>
             </div>
         </div>
     </footer>
 
+    <!-- زر العودة للأعلى -->
+    <button class="back-to-top" aria-label="العودة إلى الأعلى">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
     <script>
+        // شاشة التحميل
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                document.querySelector('.loading-overlay').classList.add('fade-out');
+                
+                // إزالة شاشة التحميل بعد انتهاء الانتقال
+                setTimeout(function() {
+                    document.querySelector('.loading-overlay').style.display = 'none';
+                }, 500);
+            }, 1500);
+        });
+
         // قائمة الجوال
         const menuToggle = document.querySelector('.menu-toggle');
         const nav = document.querySelector('nav');
         
         menuToggle.addEventListener('click', () => {
             nav.classList.toggle('active');
+            menuToggle.textContent = nav.classList.contains('active') ? '✕' : '☰';
+            menuToggle.setAttribute('aria-expanded', nav.classList.contains('active'));
         });
         
         // إغلاق القائمة عند النقر على رابط
@@ -741,19 +1507,156 @@
         navLinks.forEach(link => {
             link.addEventListener('click', () => {
                 nav.classList.remove('active');
+                menuToggle.textContent = '☰';
+                menuToggle.setAttribute('aria-expanded', 'false');
             });
         });
         
         // تأثير التمرير السلس
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
+            anchor.addEventListener('click', function(e) {
                 e.preventDefault();
                 
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
-                });
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                    
+                    // تحديث عنوان URL دون إعادة تحميل الصفحة
+                    if (history.pushState) {
+                        history.pushState(null, null, targetId);
+                    } else {
+                        location.hash = targetId;
+                    }
+                }
             });
+        });
+
+        // تأثير التمرير للشريط العلوي
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('header');
+            if (window.scrollY > 100) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // زر العودة للأعلى
+        const backToTopButton = document.querySelector('.back-to-top');
+        
+        window.addEventListener('scroll', function() {
+            if (window.pageYOffset > 300) {
+                backToTopButton.classList.add('active');
+            } else {
+                backToTopButton.classList.remove('active');
+            }
+        });
+        
+        backToTopButton.addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // تأثير الظهور التدريجي للعناصر
+        const timelineItems = document.querySelectorAll('.timeline-item');
+        
+        function checkTimelineItems() {
+            timelineItems.forEach(item => {
+                const itemTop = item.getBoundingClientRect().top;
+                const windowHeight = window.innerHeight;
+                
+                if (itemTop < windowHeight - 100) {
+                    item.classList.add('visible');
+                }
+            });
+        }
+        
+        // شريط التقدم
+        const progressBar = document.getElementById('progressBar');
+        
+        window.addEventListener('scroll', function() {
+            const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+            const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrollProgress = (scrollTop / scrollHeight) * 100;
+            
+            progressBar.style.width = scrollProgress + '%';
+            
+            // التحقق من العناصر عند التمرير
+            checkTimelineItems();
+        });
+        
+        // تهيئة العناصر المرئية عند التحميل
+        window.addEventListener('load', checkTimelineItems);
+
+        // تأثير اهتزاز الأيقونات
+        const valueIcons = document.querySelectorAll('.value-icon');
+        
+        valueIcons.forEach(icon => {
+            icon.addEventListener('mouseenter', function() {
+                this.style.animation = 'shake 0.5s';
+            });
+            
+            icon.addEventListener('mouseleave', function() {
+                this.style.animation = '';
+            });
+        });
+
+        // إضافة تأثير اهتزاز لـ CSS
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shake {
+                0% { transform: rotate(0deg); }
+                25% { transform: rotate(5deg); }
+                50% { transform: rotate(-5deg); }
+                75% { transform: rotate(5deg); }
+                100% { transform: rotate(0deg); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // تحسينات إضافية للوصول
+        document.addEventListener('keydown', function(e) {
+            // التركيز على القائمة عند الضغط على Tab
+            if (e.key === 'Tab') {
+                const focusableElements = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+                const focusableContent = document.querySelectorAll(focusableElements);
+                
+                for (let i = 0; i < focusableContent.length; i++) {
+                    if (focusableContent[i] === document.activeElement) {
+                        focusableContent[i].setAttribute('aria-selected', 'true');
+                    } else {
+                        focusableContent[i].setAttribute('aria-selected', 'false');
+                    }
+                }
+            }
+        });
+
+        // إغلاق القائمة عند النقر خارجها
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('nav') && !e.target.closest('.menu-toggle') && nav.classList.contains('active')) {
+                nav.classList.remove('active');
+                menuToggle.textContent = '☰';
+                menuToggle.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        // تحسينات لتحميل الصور
+        const images = document.querySelectorAll('img');
+        images.forEach(img => {
+            // إضافة نص بديل إذا كان فارغًا
+            if (!img.alt) {
+                img.alt = 'صورة ' + document.title;
+            }
+            
+            // تحميل كسول للصور
+            img.loading = 'lazy';
         });
     </script>
 </body>
-</html>
+                        </html>
