@@ -35,7 +35,9 @@ export const Admin = () => {
       const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
       
       if (tg?.initDataUnsafe?.user) {
-        if (tg.initDataUnsafe.user.username !== 'sekanedr_is') {
+        const username = tg.initDataUnsafe.user.username;
+        const ADMINS = ['sekanedr_is', 'ridha1993', 'Ridha1993'];
+        if (!username || !ADMINS.some(admin => admin.toLowerCase() === username.toLowerCase())) {
           navigate('/');
           return false;
         }
