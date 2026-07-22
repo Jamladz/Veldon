@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Heart, Share2, MessageCircle, Bookmark, Layers, Gift, ChevronUp, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Heart, Share2, MessageCircle, Bookmark, Layers, Gift } from 'lucide-react';
 import { useAppStore } from '../store';
 import { ReelPlayer } from '../components/ReelPlayer';
 import { ReferralHub } from '../components/ReferralHub';
@@ -13,7 +13,8 @@ export const Watch = () => {
   const { t, i18n } = useTranslation();
   const isArabic = i18n.language === 'ar';
 
-  const { movies, toggleFavorite, favorites, unlockedEpisodes, spendCoins, unlockEpisode, coins } = useAppStore();
+  const { movies, toggleFavorite, favorites, unlockedEpisodes, spendCoins, unlockEpisode, coins, isVipActive } = useAppStore();
+  const isVip = isVipActive();
   
   const movie = useMemo(() => movies.find(m => m.id === id), [movies, id]);
   const isFav = movie ? favorites.includes(movie.id) : false;
@@ -78,7 +79,19 @@ export const Watch = () => {
     }
   }, [location.search, episodes]);
 
-  // Precise IntersectionObserver for fast swipe switching
+  // Precise height-based calculation on scroll for instant active episode switching
+  const handleScroll = () => {
+    const container = containerRef.current;
+    if (!container) return;
+    const height = container.clientHeight;
+    if (height <= 0) return;
+    const index = Math.round(container.scrollTop / height);
+    if (episodes[index] && episodes[index].id !== activeEpisodeId) {
+      setActiveEpisodeId(episodes[index].id);
+    }
+  };
+
+  // Backup IntersectionObserver for snap scroll completion
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -146,18 +159,19 @@ export const Watch = () => {
       {/* Vertical Scroll Container */}
       <div 
         ref={containerRef}
-        className="flex-1 overflow-y-scroll snap-y snap-mandatory hide-scrollbar"
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-scroll snap-y snap-mandatory hide-scrollbar touch-pan-y"
         style={{ scrollBehavior: 'smooth' }}
       >
         {episodes.map((ep, idx) => {
-          const isLocked = ep.episodeNumber > 2 && !unlockedEpisodes.includes(ep.id);
+          const isLocked = !isVip && ep.episodeNumber > 2 && !unlockedEpisodes.includes(ep.id);
           const isCurrentActive = activeEpisodeId === ep.id;
 
           return (
             <div 
               key={ep.id} 
               data-episode-id={ep.id}
-              className="reel-item relative w-full h-full snap-start snap-always"
+              className="reel-item relative w-full h-full snap-start snap-always touch-pan-y"
             >
               {isLocked ? (
                 <div className="absolute inset-0 bg-[#0A0A0A] flex flex-col items-center justify-center z-10 px-6 text-center">
@@ -181,11 +195,14 @@ export const Watch = () => {
                 <ReelPlayer 
                   url={ep.videoUrl} 
                   isActive={isCurrentActive}
+                  duration={ep.duration}
                   onComplete={() => {
                     useAppStore.getState().completeEpisode(ep.id);
-                    // Auto scroll to next episode if available
+                    // Smooth auto-scroll to next episode if available
                     if (idx + 1 < episodes.length) {
-                      scrollToEpisode(episodes[idx + 1].id);
+                      setTimeout(() => {
+                        scrollToEpisode(episodes[idx + 1].id);
+                      }, 300);
                     }
                   }}
                 />
@@ -324,7 +341,7 @@ export const Watch = () => {
               </button>
               <button 
                 onClick={() => {
-                  if (spendCoins(50)) {
+                  if (spendCoins(50, isArabic ? 'فتح حلقة' : 'Unlock Episode')) {
                     unlockEpisode(showUnlockModal);
                     setShowUnlockModal(null);
                   } else {

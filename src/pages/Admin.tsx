@@ -5,7 +5,8 @@ import { ArrowLeft, Plus, Trash2, Edit3, Image as ImageIcon, Film, ChevronDown, 
 import { fetchMoviesFromDB, addMovieToDB, deleteMovieFromDB, addEpisodeToMovieDB, deleteEpisodeFromMovieDB, updateMovieInDB } from '../services/movieService';
 import { Movie, Episode } from '../types';
 import { useAppStore } from '../store';
-import { parseVideoUrl } from '../utils/videoUtils';
+import { parseVideoUrl, cleanVideoUrlInput } from '../utils/videoUtils';
+import { VideoPlayer } from '../components/VideoPlayer';
 
 export const Admin = () => {
   const navigate = useNavigate();
@@ -27,6 +28,9 @@ export const Admin = () => {
   const [newEpisode, setNewEpisode] = useState<Partial<Episode>>({
     title: '', videoUrl: '', episodeNumber: 1, duration: 0
   });
+  const [epMinutes, setEpMinutes] = useState<number>(0);
+  const [epSeconds, setEpSeconds] = useState<number>(0);
+  const [testVideoModalUrl, setTestVideoModalUrl] = useState<string | null>(null);
 
   const [movieToDelete, setMovieToDelete] = useState<string | null>(null);
 
@@ -107,14 +111,17 @@ export const Admin = () => {
     const movie = movies.find(m => m.id === selectedMovieForEpisode);
     if (!movie) return;
 
+    const totalDurationInSeconds = (Number(epMinutes) || 0) * 60 + (Number(epSeconds) || 0);
+
     if (editingEpisodeId) {
       const updatedEpisodes = (movie.episodes || []).map(ep => 
-        ep.id === editingEpisodeId ? { ...ep, ...newEpisode } as Episode : ep
+        ep.id === editingEpisodeId ? { ...ep, ...newEpisode, duration: totalDurationInSeconds } as Episode : ep
       );
       await updateMovieInDB({ ...movie, episodes: updatedEpisodes });
     } else {
       const ep: Episode = {
         ...(newEpisode as Episode),
+        duration: totalDurationInSeconds,
         id: 'ep_' + Date.now().toString(),
       };
       await addEpisodeToMovieDB(selectedMovieForEpisode, ep);
@@ -123,6 +130,8 @@ export const Admin = () => {
     setSelectedMovieForEpisode(null);
     setEditingEpisodeId(null);
     setNewEpisode({ title: '', videoUrl: '', episodeNumber: 1, duration: 0 });
+    setEpMinutes(0);
+    setEpSeconds(0);
     loadMovies();
   };
 
@@ -207,50 +216,122 @@ export const Admin = () => {
         {selectedMovieForEpisode && (
           <div className="bg-[#111111] p-4 rounded-2xl border border-white/5 space-y-4">
             <h3 className="font-bold text-blue-500">{editingEpisodeId ? t('editEpisode', 'Edit Episode') : t('addEpisode', 'Add Episode')}</h3>
-            <div className="flex gap-2">
-              <input 
-                type="number" placeholder={t('episodeNumber', 'Episode Number')} value={newEpisode.episodeNumber} onChange={e => setNewEpisode({...newEpisode, episodeNumber: parseInt(e.target.value) || 0})}
-                className="flex-1 bg-[#1A1A1A] border border-white/10 p-3 rounded-xl text-sm"
-              />
-              <input 
-                type="number" placeholder={t('durationInput', 'Duration (mins)')} value={newEpisode.duration || ''} onChange={e => setNewEpisode({...newEpisode, duration: parseInt(e.target.value) || 0})}
-                className="flex-1 bg-[#1A1A1A] border border-white/10 p-3 rounded-xl text-sm"
-              />
-            </div>
+            
             <input 
               type="text" placeholder={t('episodeTitle', 'Episode Title')} value={newEpisode.title} onChange={e => setNewEpisode({...newEpisode, title: e.target.value})}
               className="w-full bg-[#1A1A1A] border border-white/10 p-3 rounded-xl text-sm"
             />
+
+            {/* Episode Duration & Number Section */}
+            <div className="space-y-2 bg-[#161616] p-3.5 rounded-2xl border border-white/10">
+              <label className="text-xs font-bold text-amber-400 flex items-center gap-1">
+                ⏱️ <span>توقيت تشغيل الحلقة (بالدقائق والثواني)</span>
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <span className="text-[10px] text-white/50 block mb-1 font-bold">رقم الحلقة</span>
+                  <input 
+                    type="number" 
+                    value={newEpisode.episodeNumber || 1} 
+                    onChange={e => setNewEpisode({...newEpisode, episodeNumber: parseInt(e.target.value) || 1})}
+                    className="w-full bg-[#1A1A1A] border border-white/10 p-2.5 rounded-xl text-sm font-bold text-center text-white"
+                  />
+                </div>
+                <div>
+                  <span className="text-[10px] text-white/50 block mb-1 font-bold">دقائق (Minutes)</span>
+                  <input 
+                    type="number" 
+                    min="0"
+                    placeholder="0" 
+                    value={epMinutes} 
+                    onChange={e => {
+                      const m = Math.max(0, parseInt(e.target.value) || 0);
+                      setEpMinutes(m);
+                      setNewEpisode(prev => ({...prev, duration: m * 60 + epSeconds}));
+                    }}
+                    className="w-full bg-[#1A1A1A] border border-white/10 p-2.5 rounded-xl text-sm font-bold text-center text-amber-400 focus:border-amber-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <span className="text-[10px] text-white/50 block mb-1 font-bold">ثواني (Seconds)</span>
+                  <input 
+                    type="number" 
+                    min="0"
+                    max="59"
+                    placeholder="0" 
+                    value={epSeconds} 
+                    onChange={e => {
+                      const s = Math.min(59, Math.max(0, parseInt(e.target.value) || 0));
+                      setEpSeconds(s);
+                      setNewEpisode(prev => ({...prev, duration: epMinutes * 60 + s}));
+                    }}
+                    className="w-full bg-[#1A1A1A] border border-white/10 p-2.5 rounded-xl text-sm font-bold text-center text-amber-400 focus:border-amber-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+              <div className="text-[11px] text-white/60 flex items-center justify-between px-1 pt-1">
+                <span>وقت الانتقال التلقائي:</span>
+                <span className="font-mono font-bold text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-md border border-amber-500/20">
+                  {epMinutes} دقيقة و {epSeconds} ثانية ({epMinutes * 60 + epSeconds} ثانية)
+                </span>
+              </div>
+            </div>
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="text-xs font-bold text-white/80">رابط الفيديو (Video URL)</label>
+                {newEpisode.videoUrl && (() => {
+                  const p = parseVideoUrl(newEpisode.videoUrl);
+                  return (
+                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                      p.type === 'youtube'
+                        ? 'bg-red-600/30 text-red-400 border border-red-500/30'
+                        : p.type === 'dailymotion'
+                        ? 'bg-orange-600/30 text-orange-400 border border-orange-500/30'
+                        : p.type === 'vimeo'
+                        ? 'bg-cyan-600/30 text-cyan-400 border border-cyan-500/30'
+                        : p.type === 'hls'
+                        ? 'bg-blue-600/30 text-blue-400 border border-blue-500/30'
+                        : p.type === 'googledrive'
+                        ? 'bg-amber-600/30 text-amber-400 border border-amber-500/30'
+                        : p.type === 'iframe'
+                        ? 'bg-purple-600/30 text-purple-400 border border-purple-500/30'
+                        : 'bg-green-600/30 text-green-400 border border-green-500/30'
+                    }`}>
+                      {p.type === 'youtube' && '🔴 YouTube'}
+                      {p.type === 'dailymotion' && '🟠 Dailymotion'}
+                      {p.type === 'vimeo' && '🟣 Vimeo'}
+                      {p.type === 'hls' && '🔵 HLS (.m3u8)'}
+                      {p.type === 'googledrive' && '🟡 Google Drive'}
+                      {p.type === 'iframe' && '📺 Web Player'}
+                      {p.type === 'mp4' && '🟢 MP4 / Direct Video'}
+                    </span>
+                  );
+                })()}
+              </div>
+              <div className="flex gap-2">
+                <input 
+                  type="text" 
+                  placeholder="https://geo.dailymotion.com/player.html?video=xarbqda أو YouTube أو MP4 أو M3U8" 
+                  value={newEpisode.videoUrl || ''} 
+                  onChange={e => {
+                    const cleaned = cleanVideoUrlInput(e.target.value);
+                    setNewEpisode({...newEpisode, videoUrl: cleaned});
+                  }}
+                  className="flex-1 bg-[#1A1A1A] border border-white/10 p-3 rounded-xl text-sm font-mono text-white/90 focus:border-red-500 focus:outline-none"
+                  dir="ltr"
+                />
                 {newEpisode.videoUrl && (
-                  <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
-                    parseVideoUrl(newEpisode.videoUrl).type === 'youtube'
-                      ? 'bg-red-600/30 text-red-400 border border-red-500/30'
-                      : parseVideoUrl(newEpisode.videoUrl).type === 'hls'
-                      ? 'bg-blue-600/30 text-blue-400 border border-blue-500/30'
-                      : parseVideoUrl(newEpisode.videoUrl).type === 'googledrive'
-                      ? 'bg-amber-600/30 text-amber-400 border border-amber-500/30'
-                      : 'bg-green-600/30 text-green-400 border border-green-500/30'
-                  }`}>
-                    {parseVideoUrl(newEpisode.videoUrl).type === 'youtube' && '🔴 YouTube'}
-                    {parseVideoUrl(newEpisode.videoUrl).type === 'hls' && '🔵 HLS (.m3u8)'}
-                    {parseVideoUrl(newEpisode.videoUrl).type === 'googledrive' && '🟡 Google Drive'}
-                    {parseVideoUrl(newEpisode.videoUrl).type === 'mp4' && '🟢 MP4 / Direct Video'}
-                  </span>
+                  <button 
+                    type="button"
+                    onClick={() => setTestVideoModalUrl(newEpisode.videoUrl || '')}
+                    className="px-3 bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 text-red-400 rounded-xl text-xs font-bold active:scale-95 transition-all whitespace-nowrap"
+                  >
+                    ▶️ {t('preview', 'معاينة')}
+                  </button>
                 )}
               </div>
-              <input 
-                type="text" 
-                placeholder="https://www.youtube.com/watch?v=... أو MP4 أو M3U8" 
-                value={newEpisode.videoUrl || ''} 
-                onChange={e => setNewEpisode({...newEpisode, videoUrl: e.target.value})}
-                className="w-full bg-[#1A1A1A] border border-white/10 p-3 rounded-xl text-sm font-mono text-white/90 focus:border-red-500 focus:outline-none"
-                dir="ltr"
-              />
               <p className="text-[11px] text-white/40 mt-1.5 leading-relaxed">
-                💡 يدعم جميع الصيغ والروابط: YouTube (watch, embed, shorts, youtu.be), MP4, M3U8, Google Drive.
+                💡 يدعم جميع الصيغ والروابط والـ Embed: Dailymotion (geo.dailymotion), YouTube, Vimeo, MP4, M3U8, Google Drive.
               </p>
             </div>
             <div className="flex gap-2">
@@ -283,7 +364,10 @@ export const Admin = () => {
                       <button onClick={() => {
                         setEditingEpisodeId(null);
                         setNewEpisode({ title: '', videoUrl: '', episodeNumber: (movie.episodes?.length || 0) + 1, duration: 0 });
+                        setEpMinutes(0);
+                        setEpSeconds(0);
                         setSelectedMovieForEpisode(movie.id);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
                       }} className="bg-blue-600/20 text-blue-500 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 hover:bg-blue-600/30 transition-colors">
                         <Plus size={12} /> {t('addEpisode', 'Episode')}
                       </button>
@@ -313,11 +397,13 @@ export const Admin = () => {
                     <h4 className="text-xs font-bold text-white/60 mb-2">{t('episodesList', 'Episodes List')}</h4>
                     {movie.episodes && movie.episodes.length > 0 ? (
                       movie.episodes.map(ep => (
-                        <div key={ep.id} className="flex justify-between items-center bg-[#1A1A1A] p-3 rounded-xl">
+                        <div key={ep.id} className="flex justify-between items-center bg-[#1A1A1A] p-3 rounded-xl border border-white/5">
                           <div>
-                            <p className="text-sm font-bold">{ep.episodeNumber}. {ep.title}</p>
-                            <p className="text-[10px] text-white/40 mb-1">{ep.duration ? `${ep.duration} ${t('minutes', 'm')}` : ''}</p>
-                            <p className="text-[10px] text-white/40 truncate w-48" dir="ltr">{ep.videoUrl}</p>
+                            <p className="text-sm font-bold text-white">{ep.episodeNumber}. {ep.title}</p>
+                            <p className="text-[11px] text-amber-400 font-bold mb-1">
+                              ⏱️ {Math.floor((ep.duration || 0) / 60)} دقيقة و {(ep.duration || 0) % 60} ثانية ({ep.duration || 0}s)
+                            </p>
+                            <p className="text-[10px] text-white/40 truncate w-48 font-mono" dir="ltr">{ep.videoUrl}</p>
                           </div>
                           <div className="flex gap-2">
                             <button 
@@ -325,6 +411,9 @@ export const Admin = () => {
                                 setNewEpisode(ep);
                                 setEditingEpisodeId(ep.id);
                                 setSelectedMovieForEpisode(movie.id);
+                                const totalSecs = ep.duration || 0;
+                                setEpMinutes(Math.floor(totalSecs / 60));
+                                setEpSeconds(totalSecs % 60);
                                 window.scrollTo({ top: 0, behavior: 'smooth' });
                               }}
                               className="text-blue-500 hover:text-blue-400 p-2"
@@ -368,6 +457,37 @@ export const Admin = () => {
               </button>
               <button onClick={confirmDelete} className="flex-1 py-3 rounded-xl bg-red-600 text-white font-bold text-sm hover:bg-red-700 transition-colors shadow-[0_0_15px_rgba(229,9,20,0.4)]">
                 {t('delete', 'Delete')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Video Preview Modal */}
+      {testVideoModalUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+          <div className="bg-[#121212] border border-white/10 rounded-3xl p-5 w-full max-w-2xl space-y-4 shadow-2xl relative">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <span>🎥</span>
+                <span>معاينة تشغيل الفيديو (Video Test Player)</span>
+              </h3>
+              <button 
+                onClick={() => setTestVideoModalUrl(null)}
+                className="w-8 h-8 rounded-full bg-white/10 text-white flex items-center justify-center font-bold hover:bg-white/20"
+              >
+                ✕
+              </button>
+            </div>
+
+            <VideoPlayer url={testVideoModalUrl} className="w-full aspect-video rounded-2xl" />
+
+            <div className="flex justify-end">
+              <button 
+                onClick={() => setTestVideoModalUrl(null)} 
+                className="px-5 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold text-white"
+              >
+                إغلاق المعاينة
               </button>
             </div>
           </div>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Clock, Film, Tv, Flame, Gift, Settings, Crown, Share2, Wallet, User, Users, Sparkles } from 'lucide-react';
+import { Clock, Film, Tv, Flame, Gift, Settings, Crown, Share2, Wallet, User, Users, Sparkles, History, ShoppingBag, CheckCircle, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { useAppStore } from '../store';
 import { TonConnectButton, useTonConnectUI, useTonAddress } from '@tonconnect/ui-react';
 import { ReferralHub } from '../components/ReferralHub';
@@ -18,14 +18,30 @@ export const Profile = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const isArabic = i18n.language === 'ar';
-  const { favorites, coins, watchedHours, moviesCount, seriesCount, streakDays, claimDailyReward, claimAdReward, premiumUntil, setPremiumUntil } = useAppStore();
+  const { 
+    favorites, 
+    coins, 
+    transactions, 
+    watchedHours, 
+    moviesCount, 
+    seriesCount, 
+    streakDays, 
+    claimDailyReward, 
+    claimAdReward, 
+    premiumUntil, 
+    setPremiumUntil,
+    buyVipPass,
+    isVipActive 
+  } = useAppStore();
   
   const [tgUser, setTgUser] = useState<any>(null);
   const [showReferralModal, setShowReferralModal] = useState(false);
+  const [showTransactionsModal, setShowTransactionsModal] = useState(false);
+  const [showVipShopModal, setShowVipShopModal] = useState(false);
   const userAddress = useTonAddress();
   const [tonConnectUI] = useTonConnectUI();
   
-  const isPremium = premiumUntil ? premiumUntil > Date.now() : false;
+  const isPremium = isVipActive();
 
   useEffect(() => {
     if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
@@ -33,9 +49,19 @@ export const Profile = () => {
     }
   }, []);
 
+  const displayName = tgUser 
+    ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ')
+    : 'Drama Fan';
+
+  const displayUsername = tgUser?.username 
+    ? `@${tgUser.username}` 
+    : tgUser?.first_name 
+    ? `@${tgUser.first_name.toLowerCase().replace(/\s+/g, '')}` 
+    : '@dramafan';
+
   const user = {
-    name: tgUser?.first_name || 'Drama Fan',
-    username: tgUser?.username ? `@${tgUser.username}` : '@dramafan',
+    name: displayName,
+    username: displayUsername,
     photoUrl: tgUser?.photo_url || null,
     watchedHours: watchedHours || 0,
     moviesCount: moviesCount || 0,
@@ -46,7 +72,19 @@ export const Profile = () => {
     subscription: isPremium ? 'premium' : 'free'
   };
 
-  const handleSubscribe = async (days: number, amount: number) => {
+  const handleBuyVipWithCoins = (days: number, cost: number) => {
+    if (coins < cost) {
+      alert(isArabic ? `رصيدك غير كافٍ. تحتاج إلى ${cost} نقطة.` : `Insufficient coins. You need ${cost} coins.`);
+      return;
+    }
+    const success = buyVipPass(days, cost);
+    if (success) {
+      alert(isArabic ? `تم تفعيل اشتراك VIP بنجاح لمدة ${days} أيام! 🎉` : `VIP active for ${days} days! 🎉`);
+      setShowVipShopModal(false);
+    }
+  };
+
+  const handleSubscribeTon = async (days: number, amount: number) => {
     if (!userAddress) {
       tonConnectUI.openModal();
       return;
@@ -75,44 +113,113 @@ export const Profile = () => {
     }
   };
 
+  const streakRewards = [50, 70, 100, 120, 150, 200, 300];
+
   return (
     <div className="h-full w-full min-h-screen bg-[#050505] text-[#E0E0E0] flex flex-col relative" dir={isArabic ? 'rtl' : 'ltr'}>
       {/* Header */}
-      <div className="flex-none bg-[#1A1A1A] px-4 py-6 border-b border-white/10 rounded-b-3xl z-10 w-full">
-        <div className="flex items-center justify-between mb-4">
-          <div 
-            onClick={() => setShowReferralModal(true)}
-            className="flex items-center gap-2 bg-gradient-to-r from-amber-600/30 to-yellow-500/20 px-3 py-1.5 rounded-full border border-amber-500/30 cursor-pointer active:scale-95 transition-transform"
-          >
-            <span className="text-yellow-400 font-black text-sm" dir="ltr">{user.coins}</span>
-            <Gift size={14} className="text-yellow-400 animate-bounce" />
+      <div className="flex-none bg-gradient-to-b from-[#1A1A20] via-[#121216] to-[#0A0A0D] px-5 py-6 border-b border-white/10 rounded-b-[2.5rem] shadow-2xl z-10 w-full relative overflow-hidden">
+        {/* Ambient Glows */}
+        <div className={`absolute -top-16 -right-16 w-48 h-48 rounded-full blur-3xl pointer-events-none ${isPremium ? 'bg-amber-500/15' : 'bg-red-600/10'}`} />
+        <div className="absolute -bottom-16 -left-16 w-48 h-48 rounded-full bg-blue-600/10 blur-3xl pointer-events-none" />
+
+        {/* Top Control Bar */}
+        <div className="flex items-center justify-between mb-5 relative z-10">
+          <div className="flex items-center gap-2">
+            <div 
+              onClick={() => setShowVipShopModal(true)}
+              className="flex items-center gap-2 bg-gradient-to-r from-amber-500/20 via-yellow-500/20 to-amber-600/10 px-3.5 py-1.5 rounded-full border border-amber-500/30 cursor-pointer active:scale-95 transition-all shadow-lg shadow-amber-500/5"
+            >
+              <Gift size={15} className="text-yellow-400 animate-bounce" />
+              <span className="text-yellow-300 font-extrabold text-sm tracking-wide" dir="ltr">{user.coins}</span>
+              <span className="text-[10px] text-yellow-400/80 font-bold">{isArabic ? 'نقطة' : 'coins'}</span>
+            </div>
+            <button 
+              onClick={() => setShowTransactionsModal(true)}
+              className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 active:scale-90 transition-all shadow-md"
+              title={isArabic ? "سجل العمليات" : "Transactions"}
+            >
+              <History size={15} />
+            </button>
           </div>
+
           {tgUser?.username && ['sekanedr_is', 'ridha1993', 'Ridha1993'].some(u => u.toLowerCase() === tgUser.username.toLowerCase()) && (
             <button 
               onClick={() => navigate('/admin')}
-              className="w-10 h-10 bg-black/40 rounded-full flex items-center justify-center border border-white/10 active:opacity-70 transition-opacity"
+              className="flex items-center gap-1.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 px-3.5 py-1.5 rounded-full border border-red-500/30 active:scale-95 transition-all shadow-md"
             >
-              <Settings size={18} className="text-white/80" />
+              <Settings size={15} />
+              <span className="text-xs font-bold">{isArabic ? 'لوحة التحكم' : 'Admin'}</span>
             </button>
           )}
         </div>
         
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-black/50 border-2 border-red-600/50 flex items-center justify-center overflow-hidden relative flex-none">
-            {user.photoUrl ? (
-              <img src={user.photoUrl} alt="Profile" className="w-full h-full object-cover" />
+        {/* User Card */}
+        <div className="relative z-10 bg-white/[0.04] border border-white/10 rounded-2xl p-4 flex items-center gap-4 backdrop-blur-md shadow-inner">
+          {/* Avatar Ring */}
+          <div className="relative flex-none">
+            <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full p-[2.5px] ${
+              isPremium 
+                ? 'bg-gradient-to-tr from-amber-400 via-yellow-300 to-amber-600 shadow-[0_0_20px_rgba(245,158,11,0.35)]' 
+                : 'bg-gradient-to-tr from-red-600 via-orange-500 to-red-800 shadow-[0_0_15px_rgba(239,68,68,0.2)]'
+            }`}>
+              <div className="w-full h-full rounded-full bg-[#0D0D10] flex items-center justify-center overflow-hidden">
+                {user.photoUrl ? (
+                  <img src={user.photoUrl} alt={user.name} className="w-full h-full object-cover" />
+                ) : (
+                  <User size={30} className="text-white/40" />
+                )}
+              </div>
+            </div>
+            {/* VIP / Member Badge */}
+            {isPremium ? (
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-500 to-yellow-400 text-black text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shadow-md flex items-center gap-0.5 border border-amber-300/40">
+                <Crown size={10} className="fill-black" />
+                <span>VIP</span>
+              </div>
             ) : (
-              <User size={24} className="text-white/50" />
-            )}
-            {isPremium && (
-              <div className="absolute bottom-0 inset-x-0 bg-red-600 text-white text-[8px] font-black text-center py-0.5 uppercase">
-                PRO
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-zinc-800 text-zinc-300 text-[8px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border border-zinc-700">
+                MEMBER
               </div>
             )}
           </div>
-          <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-bold text-white truncate text-start">{user.name}</h2>
-            <p className="text-xs text-white/50 truncate text-start" dir="ltr">{user.username}</p>
+
+          {/* Name & Username Info */}
+          <div className="flex-1 min-w-0 flex flex-col justify-center gap-1 text-start">
+            {/* Full Name + Crown */}
+            <div className="flex items-center gap-2 min-w-0">
+              <h2 className="text-lg sm:text-xl font-black text-white truncate tracking-tight">
+                {user.name}
+              </h2>
+              {isPremium && (
+                <Crown size={18} className="text-amber-400 fill-amber-400 flex-none animate-pulse" />
+              )}
+            </div>
+
+            {/* Username & Telegram ID */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="inline-flex items-center gap-1 bg-white/5 border border-white/10 px-2.5 py-0.5 rounded-lg">
+                <span className="text-xs font-mono font-medium text-amber-300/90" dir="ltr">
+                  {user.username}
+                </span>
+              </div>
+
+              {tgUser?.id && (
+                <span className="text-[10px] text-white/40 font-mono px-2 py-0.5 bg-black/40 rounded-md border border-white/5" dir="ltr">
+                  ID: {tgUser.id}
+                </span>
+              )}
+            </div>
+
+            {/* Membership status line */}
+            <div className="mt-1 flex items-center gap-1.5 text-[11px]">
+              <span className={`w-2 h-2 rounded-full ${isPremium ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse' : 'bg-white/30'}`} />
+              <span className={`font-semibold ${isPremium ? 'text-emerald-400' : 'text-white/50'}`}>
+                {isPremium 
+                  ? (isArabic ? 'اشتراك VIP نشط' : 'VIP Membership Active') 
+                  : (isArabic ? 'العضوية المجانية' : 'Free Membership')}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -146,6 +253,61 @@ export const Profile = () => {
           </button>
         </div>
 
+        {/* 7-Day Daily Check-in Streak */}
+        <div className="bg-[#111111] border border-white/5 rounded-3xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Flame size={18} className="text-orange-500" />
+              <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                {isArabic ? `سلسلة الحضور اليومي (${streakDays} أيام)` : `Daily Streak (${streakDays} days)`}
+              </h3>
+            </div>
+            <span className="text-[11px] text-yellow-400 font-bold">
+              {isArabic ? 'احصل على نقاط مضاعفة!' : 'Earn streak bonus!'}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-7 gap-1.5 mb-3">
+            {streakRewards.map((reward, index) => {
+              const dayNum = index + 1;
+              const isClaimed = streakDays >= dayNum;
+              const isCurrent = streakDays + 1 === dayNum;
+
+              return (
+                <div 
+                  key={index} 
+                  className={`flex flex-col items-center justify-center p-2 rounded-xl border text-center transition-all ${
+                    isClaimed 
+                      ? 'bg-amber-500/20 border-amber-500/50 text-amber-300' 
+                      : isCurrent
+                      ? 'bg-white/10 border-yellow-400 text-yellow-300 animate-pulse'
+                      : 'bg-white/5 border-white/5 text-white/40'
+                  }`}
+                >
+                  <span className="text-[9px] font-bold uppercase mb-1">
+                    {isArabic ? `يوم ${dayNum}` : `D${dayNum}`}
+                  </span>
+                  <span className="text-xs font-black" dir="ltr">+{reward}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          <button 
+            onClick={() => {
+              const res = claimDailyReward();
+              if (res.success) {
+                alert(isArabic ? `تم استلام مكافأة اليوم ${res.streak}! +${res.reward} نقطة 🎉` : `Claimed Day ${res.streak}! +${res.reward} coins 🎉`);
+              } else {
+                alert(isArabic ? 'لقد قمت باستملاط مكافأتك اليومية بالفعل. عد غداً!' : 'Already claimed today! Come back tomorrow.');
+              }
+            }}
+            className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 text-black font-black text-xs py-2.5 rounded-xl shadow-lg active:scale-98 transition-transform"
+          >
+            {isArabic ? 'استلام المكافأة اليومية' : 'Claim Daily Reward'}
+          </button>
+        </div>
+
         {/* Stats Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div className="bg-[#111111] border border-white/5 rounded-2xl p-3 flex flex-col items-center justify-center gap-1.5">
@@ -170,34 +332,52 @@ export const Profile = () => {
           </div>
         </div>
 
-        {/* Earn Coins */}
+        {/* VIP Store Button using Coins */}
+        <div className="bg-gradient-to-r from-red-950/60 via-purple-900/40 to-[#151515] border border-red-500/30 rounded-3xl p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-gradient-to-tr from-amber-400 to-yellow-600 rounded-2xl flex items-center justify-center text-black font-black shadow-lg">
+              <ShoppingBag size={24} />
+            </div>
+            <div>
+              <h3 className="text-sm font-extrabold text-white">
+                {isArabic ? 'متجر VIP بالنقاط' : 'Coins VIP Shop'}
+              </h3>
+              <p className="text-xs text-white/60 mt-0.5">
+                {isArabic ? 'استبدل نقاطك باشتراك VIP ومشاهدة بلا حدود' : 'Exchange coins for unlimited VIP pass'}
+              </p>
+            </div>
+          </div>
+          <button 
+            onClick={() => setShowVipShopModal(true)}
+            className="px-3.5 py-2 bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-black text-xs rounded-xl shadow-md active:scale-95"
+          >
+            {isArabic ? 'افتح المتجر' : 'Open Shop'}
+          </button>
+        </div>
+
+        {/* Earn Coins Actions */}
         <div className="w-full">
           <h3 className="text-xs text-white/50 font-bold mb-3 uppercase tracking-wider text-start px-1">{t('earnCoins', 'Earn Coins')}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button 
-              onClick={() => {
-                if (claimDailyReward()) {
-                  alert(t('dailyRewardClaimed', 'Daily Reward Claimed! +50 Coins'));
-                } else {
-                  alert(t('dailyRewardAlreadyClaimed', 'You already claimed your daily reward. Come back tomorrow!'));
-                }
-              }}
-              className="bg-[#1A1A1A] border border-yellow-500/20 p-4 rounded-2xl flex items-center justify-between active:opacity-70 transition-opacity w-full"
+              onClick={() => setShowReferralModal(true)}
+              className="bg-[#1A1A1A] border border-amber-500/20 p-4 rounded-2xl flex items-center justify-between active:opacity-70 transition-opacity w-full"
             >
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-yellow-500/10 flex items-center justify-center flex-none">
-                  <Gift className="text-yellow-500" size={16} />
+                <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center flex-none">
+                  <Users className="text-amber-400" size={16} />
                 </div>
-                <span className="font-bold text-sm text-white">{t('dailyReward', 'Daily Reward')}</span>
+                <span className="font-bold text-sm text-white">{isArabic ? 'دعوة صديق جديد' : 'Invite Friend'}</span>
               </div>
-              <span className="text-xs text-yellow-500 font-black bg-yellow-500/10 px-2 py-1 rounded-md" dir="ltr">+50</span>
+              <span className="text-xs text-amber-400 font-black bg-amber-500/10 px-2 py-1 rounded-md" dir="ltr">+250</span>
             </button>
+
             <button 
               onClick={() => {
                 if (claimAdReward()) {
-                  alert(t('adRewardClaimed', 'Thanks for watching! +20 Coins'));
+                  alert(isArabic ? 'شكراً لمشاهدتك! حصلت على +30 نقطة 🎉' : 'Thanks for watching! +30 Coins');
                 } else {
-                  alert(t('adRewardCooldown', 'Please wait 5 minutes before watching another ad.'));
+                  alert(isArabic ? 'الرجاء الانتظار 3 دقائق قبل مشاهدة إعلان آخر.' : 'Please wait 3 minutes before watching another ad.');
                 }
               }}
               className="bg-[#1A1A1A] border border-green-500/20 p-4 rounded-2xl flex items-center justify-between active:opacity-70 transition-opacity w-full"
@@ -208,12 +388,12 @@ export const Profile = () => {
                 </div>
                 <span className="font-bold text-sm text-white">{t('watchAd', 'Watch Ad')}</span>
               </div>
-              <span className="text-xs text-green-500 font-black bg-green-500/10 px-2 py-1 rounded-md" dir="ltr">+20</span>
+              <span className="text-xs text-green-500 font-black bg-green-500/10 px-2 py-1 rounded-md" dir="ltr">+30</span>
             </button>
           </div>
         </div>
 
-        {/* Premium Section */}
+        {/* TON Crypto Subscription Section */}
         <div className="w-full">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-3 px-1">
             <h3 className="text-xs text-white/50 font-bold uppercase tracking-wider flex items-center gap-2">
@@ -227,7 +407,7 @@ export const Profile = () => {
           
           <div className="grid grid-cols-3 gap-3">
             <button 
-              onClick={() => handleSubscribe(1, 0.5)}
+              onClick={() => handleSubscribeTon(1, 0.5)}
               className="bg-[#111111] border border-white/5 p-3 sm:p-4 rounded-2xl flex flex-col items-center justify-center gap-2 active:opacity-70 transition-opacity"
             >
               <Wallet className="text-blue-500" size={20} />
@@ -235,7 +415,7 @@ export const Profile = () => {
               <span className="text-[10px] sm:text-xs text-blue-400 font-bold bg-blue-500/20 px-2 py-1 rounded-md w-full text-center whitespace-nowrap" dir="ltr">0.5 TON</span>
             </button>
             <button 
-              onClick={() => handleSubscribe(7, 2)}
+              onClick={() => handleSubscribeTon(7, 2)}
               className="bg-[#111111] border border-yellow-500/30 p-3 sm:p-4 rounded-2xl flex flex-col items-center justify-center gap-2 relative overflow-hidden active:opacity-70 transition-opacity"
             >
               <div className="absolute top-0 inset-x-0 bg-red-600 text-white text-[8px] font-black text-center py-0.5 uppercase tracking-widest w-full">
@@ -246,7 +426,7 @@ export const Profile = () => {
               <span className="text-[10px] sm:text-xs text-yellow-500 font-bold bg-yellow-500/10 px-2 py-1 rounded-md w-full text-center whitespace-nowrap" dir="ltr">2 TON</span>
             </button>
             <button 
-              onClick={() => handleSubscribe(30, 8)}
+              onClick={() => handleSubscribeTon(30, 8)}
               className="bg-[#111111] border border-green-500/30 p-3 sm:p-4 rounded-2xl flex flex-col items-center justify-center gap-2 relative overflow-hidden active:opacity-70 transition-opacity"
             >
               <div className="absolute top-0 inset-x-0 bg-green-600 text-white text-[8px] font-black text-center py-0.5 uppercase tracking-widest w-full">
@@ -293,6 +473,152 @@ export const Profile = () => {
 
       </div>
 
+      {/* VIP Shop Modal (Buy VIP with Coins) */}
+      {showVipShopModal && (
+        <div className="fixed inset-0 z-[999] bg-black/80 backdrop-blur-md flex items-end sm:items-center justify-center p-4">
+          <div className="bg-[#141414] border border-yellow-500/30 w-full max-w-md rounded-3xl p-6 relative flex flex-col gap-5 animate-in slide-in-from-bottom duration-300">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Crown size={22} className="text-yellow-400 fill-yellow-400" />
+                <h2 className="text-base font-extrabold text-white">
+                  {isArabic ? 'متجر VIP بالنقاط' : 'VIP Pass Shop'}
+                </h2>
+              </div>
+              <button 
+                onClick={() => setShowVipShopModal(false)}
+                className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/60"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-white/70">
+              {isArabic ? 'استبدل النقاط التي جمعتها للحصول على اشتراك VIP ومشاهدة كل المسلسلات بدون إعلانات وبدون الحاجة لفتح الحلقات!' : 'Use your earned coins to unlock unlimited VIP access.'}
+            </p>
+
+            <div className="grid grid-cols-1 gap-3">
+              {/* 1 Day Plan */}
+              <div className="bg-gradient-to-r from-yellow-950/30 via-black to-zinc-900/60 border border-yellow-500/20 p-4 rounded-2xl flex items-center justify-between">
+                <div>
+                  <div className="font-black text-sm text-white">{isArabic ? 'اشتراك VIP - يوم واحد' : '1 Day VIP Pass'}</div>
+                  <div className="text-[11px] text-yellow-300/70 mt-0.5">{isArabic ? '24 ساعة مشاهدة غير محدودة' : '24h unlimited access'}</div>
+                </div>
+                <button 
+                  onClick={() => handleBuyVipWithCoins(1, 500)}
+                  className="px-4 py-2 bg-yellow-500/90 hover:bg-yellow-400 text-black font-black text-xs rounded-xl shadow-md active:scale-95 transition-all"
+                >
+                  500 {isArabic ? 'نقطة' : 'Coins'}
+                </button>
+              </div>
+
+              {/* 3 Days Plan */}
+              <div className="bg-gradient-to-r from-amber-950/50 via-black to-zinc-900/80 border border-amber-500/40 p-4 rounded-2xl flex items-center justify-between relative overflow-hidden">
+                <div className="absolute top-0 right-0 bg-red-600 text-white text-[8px] font-black px-2 py-0.5 rounded-bl-lg tracking-wider">
+                  {isArabic ? 'الأكثر طلباً' : 'POPULAR'}
+                </div>
+                <div>
+                  <div className="font-black text-sm text-white">{isArabic ? 'اشتراك VIP - 3 أيام' : '3 Days VIP Pass'}</div>
+                  <div className="text-[11px] text-amber-300/80 mt-0.5">{isArabic ? 'توفير 300 نقطة' : 'Save 300 coins'}</div>
+                </div>
+                <button 
+                  onClick={() => handleBuyVipWithCoins(3, 1200)}
+                  className="px-4 py-2 bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-black font-black text-xs rounded-xl shadow-md active:scale-95 transition-all"
+                >
+                  1,200 {isArabic ? 'نقطة' : 'Coins'}
+                </button>
+              </div>
+
+              {/* 7 Days Plan */}
+              <div className="bg-gradient-to-r from-purple-950/40 via-black to-zinc-900/80 border border-purple-500/30 p-4 rounded-2xl flex items-center justify-between">
+                <div>
+                  <div className="font-black text-sm text-white">{isArabic ? 'اشتراك VIP - 7 أيام' : '7 Days VIP Pass'}</div>
+                  <div className="text-[11px] text-purple-300/80 mt-0.5">{isArabic ? 'توفير 1,000 نقطة' : 'Save 1,000 coins'}</div>
+                </div>
+                <button 
+                  onClick={() => handleBuyVipWithCoins(7, 2500)}
+                  className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-black text-xs rounded-xl shadow-md active:scale-95 transition-all"
+                >
+                  2,500 {isArabic ? 'نقطة' : 'Coins'}
+                </button>
+              </div>
+
+              {/* 30 Days Plan */}
+              <div className="bg-gradient-to-r from-emerald-950/40 via-black to-zinc-900/90 border border-emerald-500/40 p-4 rounded-2xl flex items-center justify-between relative overflow-hidden">
+                <div className="absolute top-0 right-0 bg-emerald-500 text-black text-[8px] font-black px-2 py-0.5 rounded-bl-lg tracking-wider">
+                  {isArabic ? 'توفير ضخم' : 'MAX SAVINGS'}
+                </div>
+                <div>
+                  <div className="font-black text-sm text-white">{isArabic ? 'اشتراك VIP - 30 يوماً' : '30 Days VIP Pass'}</div>
+                  <div className="text-[11px] text-emerald-300/80 mt-0.5">{isArabic ? 'توفير 7,000 نقطة!' : 'Save 7,000 coins!'}</div>
+                </div>
+                <button 
+                  onClick={() => handleBuyVipWithCoins(30, 8000)}
+                  className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xs rounded-xl shadow-md active:scale-95 transition-all"
+                >
+                  8,000 {isArabic ? 'نقطة' : 'Coins'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Transaction History Modal */}
+      {showTransactionsModal && (
+        <div className="fixed inset-0 z-[999] bg-black/80 backdrop-blur-md flex items-end sm:items-center justify-center p-4">
+          <div className="bg-[#141414] border border-white/10 w-full max-w-md rounded-3xl p-6 relative flex flex-col max-h-[80vh] animate-in slide-in-from-bottom duration-300">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <History size={20} className="text-yellow-400" />
+                <h2 className="text-base font-extrabold text-white">
+                  {isArabic ? 'سجل النقاط' : 'Coin Transactions'}
+                </h2>
+              </div>
+              <button 
+                onClick={() => setShowTransactionsModal(false)}
+                className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/60"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-2.5 pr-1">
+              {transactions && transactions.length > 0 ? (
+                transactions.map((tx) => (
+                  <div 
+                    key={tx.id}
+                    className="bg-white/5 border border-white/5 p-3 rounded-2xl flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+                        tx.type === 'earn' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                      }`}>
+                        {tx.type === 'earn' ? <ArrowDownRight size={16} /> : <ArrowUpRight size={16} />}
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-white">{tx.reason}</div>
+                        <div className="text-[10px] text-white/40">
+                          {new Date(tx.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </div>
+                    </div>
+                    <span className={`text-xs font-black ${
+                      tx.type === 'earn' ? 'text-green-400' : 'text-red-400'
+                    }`} dir="ltr">
+                      {tx.type === 'earn' ? '+' : '-'}{tx.amount}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-white/40 text-xs">
+                  {isArabic ? 'لا توجد عمليات بعد' : 'No transactions recorded yet'}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <ReferralHub 
         isOpen={showReferralModal} 
         onClose={() => setShowReferralModal(false)} 
@@ -300,4 +626,5 @@ export const Profile = () => {
     </div>
   );
 };
+
 

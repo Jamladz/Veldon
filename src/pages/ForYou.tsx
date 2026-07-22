@@ -9,7 +9,8 @@ import { Movie } from '../types';
 export const ForYou = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { movies, toggleFavorite, favorites, unlockedEpisodes, spendCoins, unlockEpisode, coins } = useAppStore();
+  const { movies, toggleFavorite, favorites, unlockedEpisodes, spendCoins, unlockEpisode, coins, isVipActive } = useAppStore();
+  const isVip = isVipActive();
   
   const [showUnlockModal, setShowUnlockModal] = useState<string | null>(null);
 
@@ -38,6 +39,30 @@ export const ForYou = () => {
 
   const containerRef = useRef<HTMLDivElement>(null);
   const observer = useRef<IntersectionObserver | null>(null);
+
+  const scrollToNext = (nextIndex: number) => {
+    if (nextIndex < allEpisodes.length && containerRef.current) {
+      const nextItem = allEpisodes[nextIndex];
+      if (nextItem) {
+        setActiveEpisodeId(nextItem.episode.id);
+        const children = containerRef.current.querySelectorAll('.reel-item');
+        if (children[nextIndex]) {
+          children[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    }
+  };
+
+  const handleScroll = () => {
+    const container = containerRef.current;
+    if (!container) return;
+    const height = container.clientHeight;
+    if (height <= 0) return;
+    const index = Math.round(container.scrollTop / height);
+    if (allEpisodes[index] && allEpisodes[index].episode.id !== activeEpisodeId) {
+      setActiveEpisodeId(allEpisodes[index].episode.id);
+    }
+  };
 
   useEffect(() => {
     if (allEpisodes.length > 0 && !activeEpisodeId) {
@@ -86,13 +111,14 @@ export const ForYou = () => {
       {/* Vertical Scroll Container */}
       <div 
         ref={containerRef}
-        className="flex-1 overflow-y-scroll snap-y snap-mandatory hide-scrollbar"
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-scroll snap-y snap-mandatory hide-scrollbar touch-pan-y"
         style={{ scrollBehavior: 'smooth' }}
       >
         {allEpisodes.map((item, index) => {
           const { movie, episode: ep } = item;
           const isFav = favorites.includes(movie.id);
-          const isLocked = ep.episodeNumber > 2 && !unlockedEpisodes.includes(ep.id);
+          const isLocked = !isVip && ep.episodeNumber > 2 && !unlockedEpisodes.includes(ep.id);
           const isCurrentActive = activeEpisodeId === ep.id;
           
           // Need unique key because same episode might appear (shouldn't if feed is unique, but just in case)
@@ -102,7 +128,7 @@ export const ForYou = () => {
           <div 
             key={uniqueKey} 
             data-episode-id={ep.id}
-            className="reel-item relative w-full h-full snap-start snap-always"
+            className="reel-item relative w-full h-full snap-start snap-always touch-pan-y"
           >
             {isLocked ? (
               <div className="absolute inset-0 bg-[#050505] flex flex-col items-center justify-center z-10 px-6 text-center">
@@ -122,7 +148,13 @@ export const ForYou = () => {
               <ReelPlayer 
                 url={ep.videoUrl} 
                 isActive={isCurrentActive}
-                onComplete={() => useAppStore.getState().completeEpisode(ep.id)}
+                duration={ep.duration}
+                onComplete={() => {
+                  useAppStore.getState().completeEpisode(ep.id);
+                  setTimeout(() => {
+                    scrollToNext(index + 1);
+                  }, 300);
+                }}
               />
             )}
 
@@ -232,7 +264,7 @@ export const ForYou = () => {
               </button>
               <button 
                 onClick={() => {
-                  if (spendCoins(50)) {
+                  if (spendCoins(50, 'فتح حلقة للمشاهدة')) {
                     unlockEpisode(showUnlockModal);
                     setShowUnlockModal(null);
                   } else {
