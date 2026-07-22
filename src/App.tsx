@@ -1,8 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { signInAnonymously } from 'firebase/auth';
 import { auth } from './firebase';
+import { processReferral, getCurrentUserId, getTelegramUser } from './services/referralService';
+import { useAppStore } from './store';
 
 // Components
 import { BottomNav } from './components/BottomNav';
@@ -49,7 +51,9 @@ const AnimatedRoutes = () => {
 };
 
 export default function App() {
-  const [isAuthReady, setIsAuthReady] = React.useState(false);
+  const [isAuthReady, setIsAuthReady] = useState(false);
+  const [referralBonusToast, setReferralBonusToast] = useState<number | null>(null);
+  const addCoins = useAppStore(s => s.addCoins);
 
   useEffect(() => {
     // Set theme based on Telegram settings or force dark
@@ -72,19 +76,59 @@ export default function App() {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
         setIsAuthReady(true);
+
+        // Process potential referral deep link
+        const currentId = getCurrentUserId(user.uid);
+        const tgUser = getTelegramUser();
+        const userName = tgUser?.first_name || 'Friend';
+
+        processReferral(currentId, userName).then((res) => {
+          if (res && res.success) {
+            addCoins(res.bonusCoins);
+            setReferralBonusToast(res.bonusCoins);
+            setTimeout(() => setReferralBonusToast(null), 5000);
+          }
+        });
       }
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [addCoins]);
 
   if (!isAuthReady) {
-    return <div className="min-h-screen bg-[#050505] flex items-center justify-center text-red-600">Loading...</div>;
+    return (
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center text-red-600 font-bold">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-red-600 border-t-transparent rounded-full animate-spin" />
+          <span className="text-xs text-white/60">Drama Reel Loading...</span>
+        </div>
+      </div>
+    );
   }
 
   return (
     <Router>
       <AnimatedRoutes />
+
+      {/* Welcome Referral Toast Notification */}
+      {referralBonusToast && (
+        <div className="fixed top-5 inset-x-4 z-[999] bg-gradient-to-r from-amber-600 via-yellow-500 to-amber-600 text-black p-4 rounded-2xl shadow-2xl border border-yellow-300 flex items-center justify-between animate-in slide-in-from-top duration-300">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🎉</span>
+            <div>
+              <div className="font-extrabold text-sm">مرحباً بك في Drama Reel!</div>
+              <div className="text-xs font-medium">حصلت على +{referralBonusToast} نقطة مجانية من مكافأة الإحالة!</div>
+            </div>
+          </div>
+          <button 
+            onClick={() => setReferralBonusToast(null)}
+            className="text-xs font-bold bg-black/20 px-2.5 py-1 rounded-lg"
+          >
+            x
+          </button>
+        </div>
+      )}
     </Router>
   );
 }
+

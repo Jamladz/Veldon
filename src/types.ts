@@ -43,6 +43,28 @@ export interface UserProfile {
   coins: number;
   subscription: 'free' | 'premium';
   lastLoginAt: number;
+  referredBy?: string;
+  referralsCount?: number;
+  earnedReferralCoins?: number;
+  claimedMilestones?: string[];
+}
+
+export interface ReferralRecord {
+  id: string;
+  referrerId: string;
+  referredId: string;
+  referredName: string;
+  rewardCoins: number;
+  createdAt: number;
+}
+
+export interface ReferralMilestone {
+  id: string;
+  targetCount: number;
+  rewardCoins: number;
+  rewardVipDays: number;
+  titleAr: string;
+  titleEn: string;
 }
 
 export interface WatchHistoryItem {
