@@ -5,6 +5,7 @@ import { ArrowLeft, Plus, Trash2, Edit3, Image as ImageIcon, Film, ChevronDown, 
 import { fetchMoviesFromDB, addMovieToDB, deleteMovieFromDB, addEpisodeToMovieDB, deleteEpisodeFromMovieDB, updateMovieInDB } from '../services/movieService';
 import { Movie, Episode } from '../types';
 import { useAppStore } from '../store';
+import { parseVideoUrl } from '../utils/videoUtils';
 
 export const Admin = () => {
   const navigate = useNavigate();
@@ -220,10 +221,38 @@ export const Admin = () => {
               type="text" placeholder={t('episodeTitle', 'Episode Title')} value={newEpisode.title} onChange={e => setNewEpisode({...newEpisode, title: e.target.value})}
               className="w-full bg-[#1A1A1A] border border-white/10 p-3 rounded-xl text-sm"
             />
-            <input 
-              type="text" placeholder={t('videoUrl', 'Video URL')} value={newEpisode.videoUrl} onChange={e => setNewEpisode({...newEpisode, videoUrl: e.target.value})}
-              className="w-full bg-[#1A1A1A] border border-white/10 p-3 rounded-xl text-sm"
-            />
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-bold text-white/80">رابط الفيديو (Video URL)</label>
+                {newEpisode.videoUrl && (
+                  <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                    parseVideoUrl(newEpisode.videoUrl).type === 'youtube'
+                      ? 'bg-red-600/30 text-red-400 border border-red-500/30'
+                      : parseVideoUrl(newEpisode.videoUrl).type === 'hls'
+                      ? 'bg-blue-600/30 text-blue-400 border border-blue-500/30'
+                      : parseVideoUrl(newEpisode.videoUrl).type === 'googledrive'
+                      ? 'bg-amber-600/30 text-amber-400 border border-amber-500/30'
+                      : 'bg-green-600/30 text-green-400 border border-green-500/30'
+                  }`}>
+                    {parseVideoUrl(newEpisode.videoUrl).type === 'youtube' && '🔴 YouTube'}
+                    {parseVideoUrl(newEpisode.videoUrl).type === 'hls' && '🔵 HLS (.m3u8)'}
+                    {parseVideoUrl(newEpisode.videoUrl).type === 'googledrive' && '🟡 Google Drive'}
+                    {parseVideoUrl(newEpisode.videoUrl).type === 'mp4' && '🟢 MP4 / Direct Video'}
+                  </span>
+                )}
+              </div>
+              <input 
+                type="text" 
+                placeholder="https://www.youtube.com/watch?v=... أو MP4 أو M3U8" 
+                value={newEpisode.videoUrl || ''} 
+                onChange={e => setNewEpisode({...newEpisode, videoUrl: e.target.value})}
+                className="w-full bg-[#1A1A1A] border border-white/10 p-3 rounded-xl text-sm font-mono text-white/90 focus:border-red-500 focus:outline-none"
+                dir="ltr"
+              />
+              <p className="text-[11px] text-white/40 mt-1.5 leading-relaxed">
+                💡 يدعم جميع الصيغ والروابط: YouTube (watch, embed, shorts, youtu.be), MP4, M3U8, Google Drive.
+              </p>
+            </div>
             <div className="flex gap-2">
               <button onClick={handleAddEpisode} className="flex-1 bg-blue-600 p-3 rounded-xl font-bold uppercase tracking-widest text-xs">
                 {editingEpisodeId ? t('saveChanges', 'Save Changes') : t('saveEpisode', 'Save Episode')}
