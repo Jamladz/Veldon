@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Clock, Film, Tv, Flame, Gift, Settings, Crown, Share2, Wallet, User } from 'lucide-react';
+import { Clock, Film, Tv, Flame, Gift, Settings, Crown, Share2, Wallet, User, Users, Sparkles } from 'lucide-react';
 import { useAppStore } from '../store';
 import { TonConnectButton, useTonConnectUI, useTonAddress } from '@tonconnect/ui-react';
+import { ReferralHub } from '../components/ReferralHub';
 
 declare global {
   interface Window {
@@ -16,9 +17,11 @@ declare global {
 export const Profile = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const isArabic = i18n.language === 'ar';
   const { favorites, coins, watchedHours, moviesCount, seriesCount, streakDays, claimDailyReward, claimAdReward, premiumUntil, setPremiumUntil } = useAppStore();
   
   const [tgUser, setTgUser] = useState<any>(null);
+  const [showReferralModal, setShowReferralModal] = useState(false);
   const userAddress = useTonAddress();
   const [tonConnectUI] = useTonConnectUI();
   
@@ -31,8 +34,8 @@ export const Profile = () => {
   }, []);
 
   const user = {
-    name: tgUser?.first_name || 'Alex Developer',
-    username: tgUser?.username ? `@${tgUser.username}` : '@alexdev',
+    name: tgUser?.first_name || 'Drama Fan',
+    username: tgUser?.username ? `@${tgUser.username}` : '@dramafan',
     photoUrl: tgUser?.photo_url || null,
     watchedHours: watchedHours || 0,
     moviesCount: moviesCount || 0,
@@ -73,13 +76,16 @@ export const Profile = () => {
   };
 
   return (
-    <div className="h-full w-full min-h-screen bg-[#050505] text-[#E0E0E0] flex flex-col relative" dir={i18n.language === 'ar' ? 'rtl' : 'ltr'}>
+    <div className="h-full w-full min-h-screen bg-[#050505] text-[#E0E0E0] flex flex-col relative" dir={isArabic ? 'rtl' : 'ltr'}>
       {/* Header */}
       <div className="flex-none bg-[#1A1A1A] px-4 py-6 border-b border-white/10 rounded-b-3xl z-10 w-full">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-full border border-white/10">
-            <span className="text-yellow-500 font-black text-sm" dir="ltr">{user.coins}</span>
-            <Gift size={14} className="text-yellow-500" />
+          <div 
+            onClick={() => setShowReferralModal(true)}
+            className="flex items-center gap-2 bg-gradient-to-r from-amber-600/30 to-yellow-500/20 px-3 py-1.5 rounded-full border border-amber-500/30 cursor-pointer active:scale-95 transition-transform"
+          >
+            <span className="text-yellow-400 font-black text-sm" dir="ltr">{user.coins}</span>
+            <Gift size={14} className="text-yellow-400 animate-bounce" />
           </div>
           {tgUser?.username === 'sekanedr_is' && (
             <button 
@@ -114,6 +120,32 @@ export const Profile = () => {
       {/* Main Content */}
       <div className="flex-1 w-full overflow-y-auto p-4 flex flex-col gap-6 pb-24">
         
+        {/* Referral System Highlight Banner */}
+        <div 
+          onClick={() => setShowReferralModal(true)}
+          className="bg-gradient-to-r from-amber-950 via-yellow-900/80 to-[#181818] border border-amber-500/40 rounded-3xl p-4 flex items-center justify-between cursor-pointer shadow-xl shadow-amber-500/10 active:scale-98 transition-transform"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-gradient-to-tr from-amber-500 to-yellow-400 rounded-2xl flex items-center justify-center text-black font-black shadow-lg">
+              <Users size={24} />
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <h3 className="text-sm font-extrabold text-white">
+                  {isArabic ? 'دعوة الأصدقاء وكسب النقاط' : 'Invite Friends & Earn Coins'}
+                </h3>
+                <Sparkles size={14} className="text-yellow-400 animate-pulse" />
+              </div>
+              <p className="text-xs text-amber-200/80 mt-0.5">
+                {isArabic ? 'احصل على +250 نقطة لكل إحالة ناجحة' : 'Get +250 coins for every friend invited'}
+              </p>
+            </div>
+          </div>
+          <button className="px-3 py-2 bg-yellow-500 text-black font-black text-xs rounded-xl shadow-md whitespace-nowrap">
+            {isArabic ? 'دعوة الآن' : 'Invite Now'}
+          </button>
+        </div>
+
         {/* Stats Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div className="bg-[#111111] border border-white/5 rounded-2xl p-3 flex flex-col items-center justify-center gap-1.5">
@@ -245,15 +277,7 @@ export const Profile = () => {
               </button>
               
               <button 
-                onClick={() => {
-                  if (navigator.share) {
-                    navigator.share({
-                      title: 'Drama Reel',
-                      text: 'Check out this awesome app!',
-                      url: window.location.origin
-                    }).catch(console.error);
-                  }
-                }}
+                onClick={() => setShowReferralModal(true)}
                 className="bg-[#111111] border border-white/5 p-4 rounded-2xl flex items-center justify-between active:opacity-70 transition-opacity w-full"
               >
                 <div className="flex items-center gap-3">
@@ -262,12 +286,18 @@ export const Profile = () => {
                   </div>
                   <span className="font-bold text-sm text-white">{t('inviteFriends', 'Invite')}</span>
                 </div>
-                <span className="text-xs text-yellow-500 font-black bg-yellow-500/10 px-2 py-1 rounded-md" dir="ltr">+500</span>
+                <span className="text-xs text-yellow-500 font-black bg-yellow-500/10 px-2 py-1 rounded-md" dir="ltr">+250</span>
               </button>
            </div>
         </div>
 
       </div>
+
+      <ReferralHub 
+        isOpen={showReferralModal} 
+        onClose={() => setShowReferralModal(false)} 
+      />
     </div>
   );
 };
+
