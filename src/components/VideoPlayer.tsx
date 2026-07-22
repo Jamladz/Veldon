@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Hls from 'hls.js';
 import { cn } from '../lib/utils';
-import { Play, Pause, Maximize, Settings, SkipBack, SkipForward, Volume2, VolumeX } from 'lucide-react';
+import { Play, Pause, Maximize, Settings, Volume2, VolumeX } from 'lucide-react';
+import { parseVideoUrl } from '../utils/videoUtils';
 
 interface VideoPlayerProps {
   url: string;
@@ -20,22 +21,35 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ url, onProgress, start
   const [isMuted, setIsMuted] = useState(false);
   const [showControls, setShowControls] = useState(true);
 
+  const parsed = parseVideoUrl(url, true);
+
   useEffect(() => {
+    if (parsed.type === 'youtube' || parsed.type === 'googledrive' || !parsed.originalUrl) return;
+
     let hls: Hls;
     const video = videoRef.current;
     if (!video) return;
 
-    if (Hls.isSupported()) {
-      hls = new Hls();
-      hls.loadSource(url);
-      hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+    if (parsed.type === 'hls') {
+      if (Hls.isSupported()) {
+        hls = new Hls();
+        hls.loadSource(parsed.originalUrl);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          if (startAt > 0) {
+            video.currentTime = startAt;
+          }
+        });
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = parsed.originalUrl;
         if (startAt > 0) {
-          video.currentTime = startAt;
+          video.addEventListener('loadedmetadata', () => {
+            video.currentTime = startAt;
+          });
         }
-      });
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = url;
+      }
+    } else {
+      video.src = parsed.originalUrl;
       if (startAt > 0) {
         video.addEventListener('loadedmetadata', () => {
           video.currentTime = startAt;
@@ -46,7 +60,34 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ url, onProgress, start
     return () => {
       if (hls) hls.destroy();
     };
-  }, [url, startAt]);
+  }, [parsed.originalUrl, parsed.type, startAt]);
+
+  if (parsed.type === 'youtube' && parsed.embedUrl) {
+    return (
+      <div className={cn("relative bg-black rounded-lg overflow-hidden w-full aspect-video", className)}>
+        <iframe
+          src={parsed.embedUrl}
+          className="w-full h-full border-none"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+          title="YouTube Video Player"
+        />
+      </div>
+    );
+  }
+
+  if (parsed.type === 'googledrive' && parsed.embedUrl) {
+    return (
+      <div className={cn("relative bg-black rounded-lg overflow-hidden w-full aspect-video", className)}>
+        <iframe
+          src={parsed.embedUrl}
+          className="w-full h-full border-none"
+          allow="autoplay; fullscreen"
+          title="Google Drive Video Player"
+        />
+      </div>
+    );
+  }
 
   const togglePlay = () => {
     if (videoRef.current) {

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Hls from 'hls.js';
 import { Play, Pause, Volume2, VolumeX, Loader2 } from 'lucide-react';
+import { parseVideoUrl } from '../utils/videoUtils';
 
 interface ReelPlayerProps {
   url: string;
@@ -19,17 +20,7 @@ export const ReelPlayer: React.FC<ReelPlayerProps> = ({ url, isActive, onProgres
   const [isBuffering, setIsBuffering] = useState(true);
   const [showControlIcon, setShowControlIcon] = useState<'play' | 'pause' | null>(null);
 
-  const safeUrl = url || '';
-  const isGoogleDrive = safeUrl.includes('drive.google.com/file/d/') || safeUrl.includes('drive.google.com/video/d/') || safeUrl.includes('drive.google.com/open?id=');
-  let googleDriveUrl = '';
-  if (isGoogleDrive) {
-    const match = safeUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    const idMatch = safeUrl.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-    const id = (match && match[1]) || (idMatch && idMatch[1]);
-    if (id) {
-      googleDriveUrl = `https://drive.google.com/file/d/${id}/preview`;
-    }
-  }
+  const parsed = parseVideoUrl(url, isActive);
 
   // Synchronously update isActiveRef
   useEffect(() => {
@@ -49,7 +40,7 @@ export const ReelPlayer: React.FC<ReelPlayerProps> = ({ url, isActive, onProgres
   }, [isActive]);
 
   useEffect(() => {
-    if (isGoogleDrive || !safeUrl) return;
+    if (parsed.type === 'youtube' || parsed.type === 'googledrive' || !parsed.originalUrl) return;
 
     let hls: Hls | null = null;
     const video = videoRef.current;
@@ -58,20 +49,20 @@ export const ReelPlayer: React.FC<ReelPlayerProps> = ({ url, isActive, onProgres
     setIsReady(false);
     setIsBuffering(true);
 
-    if (safeUrl.includes('.m3u8')) {
+    if (parsed.type === 'hls') {
       if (Hls.isSupported()) {
         hls = new Hls({
           enableWorker: true,
           lowLatencyMode: true,
         });
-        hls.loadSource(safeUrl);
+        hls.loadSource(parsed.originalUrl);
         hls.attachMedia(video);
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
           setIsReady(true);
           setIsBuffering(false);
         });
       } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = safeUrl;
+        video.src = parsed.originalUrl;
         const handleMetadata = () => {
           setIsReady(true);
           setIsBuffering(false);
@@ -82,7 +73,7 @@ export const ReelPlayer: React.FC<ReelPlayerProps> = ({ url, isActive, onProgres
         };
       }
     } else {
-      video.src = safeUrl;
+      video.src = parsed.originalUrl;
       const handleMetadata = () => {
         setIsReady(true);
         setIsBuffering(false);
@@ -98,7 +89,7 @@ export const ReelPlayer: React.FC<ReelPlayerProps> = ({ url, isActive, onProgres
         hls.destroy();
       }
     };
-  }, [safeUrl, isGoogleDrive]);
+  }, [parsed.originalUrl, parsed.type]);
 
   // Master Playback Trigger based on isActive and isReady
   useEffect(() => {
@@ -180,15 +171,50 @@ export const ReelPlayer: React.FC<ReelPlayerProps> = ({ url, isActive, onProgres
     }
   };
 
-  if (isGoogleDrive && googleDriveUrl) {
+  if (parsed.type === 'youtube' && parsed.embedUrl) {
+    return (
+      <div className="relative w-full h-full bg-black flex items-center justify-center overflow-hidden">
+        {isActive ? (
+          <iframe
+            src={parsed.embedUrl}
+            className="w-full h-full border-none pointer-events-auto"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+            title="YouTube Video Player"
+          />
+        ) : (
+          <div className="w-full h-full bg-black flex items-center justify-center relative">
+            {parsed.videoId ? (
+              <img
+                src={`https://img.youtube.com/vi/${parsed.videoId}/hqdefault.jpg`}
+                alt="YouTube Thumbnail"
+                className="w-full h-full object-cover opacity-60"
+              />
+            ) : (
+              <div className="text-white/40 text-xs">YouTube Video</div>
+            )}
+            <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+              <div className="w-14 h-14 bg-red-600/80 rounded-full flex items-center justify-center text-white">
+                <Play size={28} fill="white" className="ml-1" />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (parsed.type === 'googledrive' && parsed.embedUrl) {
     return (
       <div className="relative w-full h-full bg-black flex items-center justify-center">
-        <iframe
-          src={googleDriveUrl}
-          className="w-full h-full border-none"
-          allow="autoplay; fullscreen"
-          title="Google Drive Video Player"
-        />
+        {isActive && (
+          <iframe
+            src={parsed.embedUrl}
+            className="w-full h-full border-none"
+            allow="autoplay; fullscreen"
+            title="Google Drive Video Player"
+          />
+        )}
       </div>
     );
   }
