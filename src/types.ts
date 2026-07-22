@@ -73,3 +73,11 @@ export interface WatchHistoryItem {
   percentage: number;
   updatedAt: number;
 }
+
+export interface CoinTransaction {
+  id: string;
+  type: 'earn' | 'spend';
+  amount: number;
+  reason: string;
+  timestamp: number;
+}

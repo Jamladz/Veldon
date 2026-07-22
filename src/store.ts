@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Movie, UserProfile, WatchHistoryItem } from './types';
+import { Movie, UserProfile, WatchHistoryItem, CoinTransaction } from './types';
 
 interface AppState {
   user: UserProfile | null;
@@ -8,6 +8,7 @@ interface AppState {
   favorites: string[];
   history: Record<string, WatchHistoryItem>;
   coins: number;
+  transactions: CoinTransaction[];
   unlockedEpisodes: string[];
   watchedHours: number;
   moviesCount: number;
@@ -21,14 +22,18 @@ interface AppState {
   setMovies: (movies: Movie[]) => void;
   toggleFavorite: (movieId: string) => void;
   updateHistory: (movieId: string, item: WatchHistoryItem) => void;
-  addCoins: (amount: number) => void;
-  spendCoins: (amount: number) => boolean;
+  addCoins: (amount: number, reason?: string) => void;
+  spendCoins: (amount: number, reason?: string) => boolean;
   unlockEpisode: (episodeId: string) => void;
-  claimDailyReward: () => boolean;
+  claimDailyReward: () => { success: boolean; reward: number; streak: number };
   claimAdReward: () => boolean;
   setPremiumUntil: (timestamp: number) => void;
   completeEpisode: (episodeId: string) => void;
+  buyVipPass: (days: number, cost: number) => boolean;
+  isVipActive: () => boolean;
 }
+
+const STREAK_REWARDS = [50, 70, 100, 120, 150, 200, 300];
 
 export const useAppStore = create<AppState>()(
   persist(
@@ -38,6 +43,7 @@ export const useAppStore = create<AppState>()(
       favorites: [],
       history: {},
       coins: 0,
+      transactions: [],
       unlockedEpisodes: [],
       watchedHours: 0,
       moviesCount: 0,
@@ -63,13 +69,35 @@ export const useAppStore = create<AppState>()(
           [movieId]: item
         }
       })),
-      addCoins: (amount) => set((state) => ({ coins: state.coins + amount })),
-      spendCoins: (amount) => {
+      addCoins: (amount, reason = 'إضافة نقاط') => set((state) => {
+        const newTransaction: CoinTransaction = {
+          id: Math.random().toString(36).substring(2, 9),
+          type: 'earn',
+          amount,
+          reason,
+          timestamp: Date.now()
+        };
+        return {
+          coins: state.coins + amount,
+          transactions: [newTransaction, ...state.transactions].slice(0, 50)
+        };
+      }),
+      spendCoins: (amount, reason = 'خصم نقاط') => {
         let success = false;
         set((state) => {
           if (state.coins >= amount) {
             success = true;
-            return { coins: state.coins - amount };
+            const newTransaction: CoinTransaction = {
+              id: Math.random().toString(36).substring(2, 9),
+              type: 'spend',
+              amount,
+              reason,
+              timestamp: Date.now()
+            };
+            return { 
+              coins: state.coins - amount,
+              transactions: [newTransaction, ...state.transactions].slice(0, 50)
+            };
           }
           return state;
         });
@@ -84,19 +112,32 @@ export const useAppStore = create<AppState>()(
       claimDailyReward: () => {
         const state = get();
         const now = Date.now();
-        const oneDay = 24 * 60 * 60 * 1000;
-        if (!state.lastDailyReward || now - state.lastDailyReward >= oneDay) {
-          set({ coins: state.coins + 50, lastDailyReward: now });
-          return true;
+        const oneDayMs = 24 * 60 * 60 * 1000;
+        
+        if (state.lastDailyReward && (now - state.lastDailyReward < oneDayMs)) {
+          return { success: false, reward: 0, streak: state.streakDays };
         }
-        return false;
+
+        let newStreak = 1;
+        if (state.lastDailyReward && (now - state.lastDailyReward < oneDayMs * 2)) {
+          newStreak = state.streakDays + 1;
+        }
+
+        const rewardIndex = Math.min(newStreak - 1, STREAK_REWARDS.length - 1);
+        const rewardAmount = STREAK_REWARDS[rewardIndex];
+
+        get().addCoins(rewardAmount, `مكافأة تسجيل دخول (اليوم ${newStreak})`);
+        set({ streakDays: newStreak, lastDailyReward: now });
+
+        return { success: true, reward: rewardAmount, streak: newStreak };
       },
       claimAdReward: () => {
         const state = get();
         const now = Date.now();
-        const cooldown = 5 * 60 * 1000; // 5 minutes cooldown
+        const cooldown = 3 * 60 * 1000; // 3 minutes cooldown
         if (!state.lastAdWatch || now - state.lastAdWatch >= cooldown) {
-          set({ coins: state.coins + 20, lastAdWatch: now });
+          get().addCoins(30, 'مشاهدة إعلان قصير');
+          set({ lastAdWatch: now });
           return true;
         }
         return false;
@@ -107,19 +148,36 @@ export const useAppStore = create<AppState>()(
           if (state.completedEpisodes.includes(episodeId)) {
             return state;
           }
+          get().addCoins(10, 'إكمال مشاهدة حلقة');
           return { 
-            coins: state.coins + 5,
             completedEpisodes: [...state.completedEpisodes, episodeId]
           };
         });
+      },
+      buyVipPass: (days: number, cost: number) => {
+        const state = get();
+        const success = get().spendCoins(cost, `اشتراك VIP لمدة ${days} يوم`);
+        if (success) {
+          const currentExpiry = state.premiumUntil && state.premiumUntil > Date.now() ? state.premiumUntil : Date.now();
+          const additionalTime = days * 24 * 60 * 60 * 1000;
+          set({ premiumUntil: currentExpiry + additionalTime });
+          return true;
+        }
+        return false;
+      },
+      isVipActive: () => {
+        const state = get();
+        return Boolean(state.premiumUntil && state.premiumUntil > Date.now());
       }
     }),
     {
       name: 'drama-reel-storage',
       partialize: (state) => ({ 
         coins: state.coins, 
+        transactions: state.transactions,
         unlockedEpisodes: state.unlockedEpisodes,
         favorites: state.favorites,
+        streakDays: state.streakDays,
         lastDailyReward: state.lastDailyReward,
         lastAdWatch: state.lastAdWatch,
         premiumUntil: state.premiumUntil,
@@ -128,3 +186,4 @@ export const useAppStore = create<AppState>()(
     }
   )
 );
+
