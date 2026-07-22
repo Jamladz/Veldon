@@ -24,7 +24,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ url, onProgress, start
   const parsed = parseVideoUrl(url, true);
 
   useEffect(() => {
-    if (parsed.type === 'youtube' || parsed.type === 'googledrive' || !parsed.originalUrl) return;
+    if (parsed.embedUrl || !parsed.originalUrl) return;
 
     let hls: Hls;
     const video = videoRef.current;
@@ -60,30 +60,18 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ url, onProgress, start
     return () => {
       if (hls) hls.destroy();
     };
-  }, [parsed.originalUrl, parsed.type, startAt]);
+  }, [parsed.originalUrl, parsed.type, parsed.embedUrl, startAt]);
 
-  if (parsed.type === 'youtube' && parsed.embedUrl) {
+  if (parsed.embedUrl) {
     return (
-      <div className={cn("relative bg-black rounded-lg overflow-hidden w-full aspect-video", className)}>
+      <div className={cn("relative bg-black rounded-2xl overflow-hidden w-full aspect-video shadow-2xl border border-white/10", className)}>
         <iframe
           src={parsed.embedUrl}
           className="w-full h-full border-none"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
           allowFullScreen
-          title="YouTube Video Player"
-        />
-      </div>
-    );
-  }
-
-  if (parsed.type === 'googledrive' && parsed.embedUrl) {
-    return (
-      <div className={cn("relative bg-black rounded-lg overflow-hidden w-full aspect-video", className)}>
-        <iframe
-          src={parsed.embedUrl}
-          className="w-full h-full border-none"
-          allow="autoplay; fullscreen"
-          title="Google Drive Video Player"
+          referrerPolicy="no-referrer-when-downgrade"
+          title="Video Player"
         />
       </div>
     );
