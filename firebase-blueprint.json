@@ -1,0 +1,52 @@
+{
+  "entities": {
+    "Episode": {
+      "title": "Episode",
+      "description": "An episode of a movie",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "episodeNumber": { "type": "number" },
+        "title": { "type": "string", "maxLength": 200 },
+        "videoUrl": { "type": "string", "maxLength": 500 }
+      },
+      "required": ["id", "episodeNumber", "title", "videoUrl"]
+    },
+    "Movie": {
+      "title": "Movie",
+      "description": "A movie",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 200 },
+        "description": { "type": "string", "maxLength": 2000 },
+        "coverImage": { "type": "string", "maxLength": 500 },
+        "largeImage": { "type": "string", "maxLength": 500 },
+        "trailerUrl": { "type": "string", "maxLength": 500 },
+        "videoUrl": { "type": "string", "maxLength": 500 },
+        "episodes": {
+          "type": "array",
+          "items": { "$ref": "#/entities/Episode" }
+        },
+        "releaseYear": { "type": "number" },
+        "duration": { "type": "number" },
+        "episodesCount": { "type": "number" },
+        "rating": { "type": "number" },
+        "views": { "type": "number" },
+        "category": { "type": "string", "maxLength": 100 },
+        "director": { "type": "string", "maxLength": 100 },
+        "cast": { "type": "array", "items": { "type": "string", "maxLength": 100 } },
+        "country": { "type": "string", "maxLength": 100 },
+        "language": { "type": "string", "maxLength": 100 },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["id", "title"]
+    }
+  },
+  "firestore": {
+    "movies/{movieId}": {
+      "schema": "#/entities/Movie",
+      "description": "Stores movies"
+    }
+  }
+}
