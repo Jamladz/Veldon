@@ -87,7 +87,7 @@ export const Profile = () => {
             <span className="text-yellow-400 font-black text-sm" dir="ltr">{user.coins}</span>
             <Gift size={14} className="text-yellow-400 animate-bounce" />
           </div>
-          {tgUser?.username === 'sekanedr_is' && (
+          {tgUser?.username && ['sekanedr_is', 'ridha1993', 'Ridha1993'].some(u => u.toLowerCase() === tgUser.username.toLowerCase()) && (
             <button 
               onClick={() => navigate('/admin')}
               className="w-10 h-10 bg-black/40 rounded-full flex items-center justify-center border border-white/10 active:opacity-70 transition-opacity"
@@ -300,4 +300,3 @@ export const Profile = () => {
     </div>
   );
 };
-
