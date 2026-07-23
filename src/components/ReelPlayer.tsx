@@ -299,21 +299,27 @@ export const ReelPlayer: React.FC<ReelPlayerProps> = ({ url, isActive, duration,
             {/* Transparent Touch Shield Layer - prevents touching internal video controls while enabling smooth vertical scrolling */}
             <div className="absolute inset-0 z-20 bg-transparent pointer-events-auto touch-pan-y" />
 
-            {/* Smart Network / Buffering Overlay Sensor */}
-            {isBufferingOrOffline && (
-              <div className="absolute top-16 left-4 z-30 flex items-center gap-2 bg-black/80 text-amber-400 text-xs px-3 py-1.5 rounded-full border border-amber-500/30 shadow-lg backdrop-blur-md animate-pulse">
-                {!isOnline ? <WifiOff size={14} /> : <Loader2 size={14} className="animate-spin" />}
-                <span>{!isOnline ? 'لا يوجد اتصال بالإنترنت' : 'جاري التحميل... المؤقت متوقف'}</span>
-              </div>
-            )}
-
-            {/* Duration Timer Badge if set by admin */}
-            {duration && duration > 0 && (
-              <div className="absolute top-16 right-4 z-30 bg-black/75 border border-white/10 px-3 py-1 rounded-full text-[11px] font-mono font-bold text-amber-400 backdrop-blur-md shadow-md flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+          {/* Top Controls Bar (Timer & Network Sensor) */}
+          <div className="absolute top-[calc(3.8rem+env(safe-area-inset-top,0px))] left-3.5 right-3.5 z-30 flex items-center justify-between pointer-events-none">
+            {/* Left: Timer Badge */}
+            {duration && duration > 0 ? (
+              <div className="bg-black/70 border border-amber-500/30 px-3.5 py-1.5 rounded-full text-xs font-mono font-extrabold text-amber-400 backdrop-blur-xl shadow-[0_4px_20px_rgba(0,0,0,0.6)] flex items-center gap-2 pointer-events-auto">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                </span>
                 <span>{formatTime(watchedSeconds)} / {formatTime(duration)}</span>
               </div>
+            ) : <div />}
+
+            {/* Right: Network Status indicator if offline / buffering */}
+            {isBufferingOrOffline && (
+              <div className="flex items-center gap-2 bg-black/80 text-amber-400 text-xs px-3.5 py-1.5 rounded-full border border-amber-500/40 shadow-xl backdrop-blur-xl animate-pulse pointer-events-auto">
+                {!isOnline ? <WifiOff size={14} className="text-red-400" /> : <Loader2 size={14} className="animate-spin text-amber-400" />}
+                <span className="font-bold text-[11px]">{!isOnline ? 'لا يوجد إنترنت' : 'جاري التحميل...'}</span>
+              </div>
             )}
+          </div>
           </div>
         ) : (
           <div className="w-full h-full bg-black flex items-center justify-center relative">
@@ -391,19 +397,22 @@ export const ReelPlayer: React.FC<ReelPlayerProps> = ({ url, isActive, duration,
 
       {/* Top Controls: Sound Toggle & Duration Counter */}
       {isActive && (
-        <div className="absolute top-16 left-4 right-4 z-30 flex items-center justify-between pointer-events-none">
+        <div className="absolute top-[calc(3.8rem+env(safe-area-inset-top,0px))] left-3.5 right-3.5 z-30 flex items-center justify-between pointer-events-none">
           {duration && duration > 0 ? (
-            <div className="bg-black/75 border border-white/10 px-3 py-1 rounded-full text-[11px] font-mono font-bold text-amber-400 backdrop-blur-md shadow-md flex items-center gap-1.5 pointer-events-auto">
-              <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+            <div className="bg-black/70 border border-amber-500/30 px-3.5 py-1.5 rounded-full text-xs font-mono font-extrabold text-amber-400 backdrop-blur-xl shadow-[0_4px_20px_rgba(0,0,0,0.6)] flex items-center gap-2 pointer-events-auto">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+              </span>
               <span>{formatTime(watchedSeconds)} / {formatTime(duration)}</span>
             </div>
           ) : <div />}
 
           <button
             onClick={toggleMute}
-            className="w-9 h-9 bg-black/50 border border-white/10 rounded-full flex items-center justify-center text-white backdrop-blur-md active:scale-95 transition-transform pointer-events-auto"
+            className="w-10 h-10 bg-black/60 border border-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-xl active:scale-90 hover:border-white/40 transition-all shadow-lg pointer-events-auto"
           >
-            {isMuted ? <VolumeX size={18} className="text-red-400" /> : <Volume2 size={18} className="text-white" />}
+            {isMuted ? <VolumeX size={20} className="text-red-400" /> : <Volume2 size={20} className="text-white" />}
           </button>
         </div>
       )}
