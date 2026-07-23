@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Heart, Share2, MessageCircle, Bookmark, Layers, Gift } from 'lucide-react';
+import { ArrowLeft, Heart, Share2, MessageCircle, Bookmark, Layers, Gift, Plus } from 'lucide-react';
 import { useAppStore } from '../store';
 import { ReelPlayer } from '../components/ReelPlayer';
 import { ReferralHub } from '../components/ReferralHub';
@@ -127,7 +127,7 @@ export const Watch = () => {
   return (
     <div className="bg-black fixed inset-0 z-50 flex flex-col select-none" dir={isArabic ? 'rtl' : 'ltr'}>
       {/* Top Header overlay */}
-      <div className="absolute top-0 left-0 right-0 p-4 pt-10 flex items-center justify-between z-40 bg-gradient-to-b from-black/90 via-black/40 to-transparent pointer-events-none">
+      <div className="absolute top-0 left-0 right-0 p-4 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] flex items-center justify-between z-40 bg-gradient-to-b from-black/90 via-black/40 to-transparent pointer-events-none">
         <div className="flex items-center gap-2 pointer-events-auto">
           <button 
             onClick={() => navigate(-1)} 
@@ -208,57 +208,89 @@ export const Watch = () => {
                 />
               )}
 
-              {/* Right Side Actions */}
-              <div className="absolute right-3 bottom-24 flex flex-col items-center gap-5 z-20 pointer-events-auto">
+              {/* Right Side Action Buttons */}
+              <div className="absolute right-3.5 bottom-20 flex flex-col items-center gap-4 z-20 pointer-events-auto">
+                {/* Series Avatar with Follow Badge */}
+                <div className="relative mb-1 group cursor-pointer" onClick={() => setShowEpisodeDrawer(true)}>
+                  <div className="w-12 h-12 rounded-full p-[2px] bg-gradient-to-tr from-red-600 via-orange-500 to-amber-400 shadow-xl shadow-red-600/20 group-active:scale-95 transition-transform">
+                    <img 
+                      src={movie.posterUrl} 
+                      alt={movie.title} 
+                      className="w-full h-full object-cover rounded-full" 
+                    />
+                  </div>
+                  <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 bg-red-600 text-white rounded-full p-0.5 shadow-md border border-black">
+                    <Plus size={12} strokeWidth={3} />
+                  </div>
+                </div>
+
+                {/* Like / Favorite Button */}
                 <button 
                   onClick={() => toggleFavorite(movie.id)}
                   className="flex flex-col items-center gap-1 group"
                 >
-                  <div className="w-12 h-12 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/20 group-active:scale-90 transition-transform shadow-lg">
-                    <Heart size={24} className={isFav ? "fill-red-500 text-red-500" : ""} />
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-xl transition-all duration-200 border shadow-lg group-active:scale-90 ${
+                    isFav 
+                      ? "bg-red-600/30 border-red-500/60 text-red-500 shadow-red-600/30" 
+                      : "bg-black/45 border-white/15 text-white hover:border-white/30"
+                  }`}>
+                    <Heart size={24} className={isFav ? "fill-red-500 text-red-500 animate-bounce" : "text-white"} />
                   </div>
-                  <span className="text-white text-[10px] font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                    {(movie.rating * 1000).toLocaleString()}
+                  <span className="text-white text-[11px] font-extrabold tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+                    {(movie.rating * 1250).toLocaleString()}
                   </span>
                 </button>
                 
+                {/* Episodes Drawer Button */}
                 <button 
                   onClick={() => setShowEpisodeDrawer(true)}
                   className="flex flex-col items-center gap-1 group"
                 >
-                  <div className="w-12 h-12 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/20 group-active:scale-90 transition-transform shadow-lg">
-                    <Layers size={22} className="text-red-400" />
+                  <div className="w-12 h-12 bg-black/45 backdrop-blur-xl rounded-full flex items-center justify-center text-red-400 border border-white/15 group-active:scale-90 transition-all shadow-lg hover:border-white/30">
+                    <Layers size={22} className="text-red-500" />
                   </div>
-                  <span className="text-white text-[10px] font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                  <span className="text-white text-[11px] font-extrabold tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
                     {isArabic ? 'الحلقات' : 'Episodes'}
                   </span>
                 </button>
 
+                {/* Referral / Share Button with Coin Badge */}
                 <button 
                   onClick={() => setShowReferralModal(true)}
-                  className="flex flex-col items-center gap-1 group"
+                  className="flex flex-col items-center gap-1 group relative"
                 >
-                  <div className="w-12 h-12 bg-gradient-to-tr from-amber-600 to-yellow-500 rounded-full flex items-center justify-center text-white shadow-lg shadow-amber-500/20 group-active:scale-90 transition-transform">
+                  <div className="w-12 h-12 bg-gradient-to-tr from-amber-600 via-amber-500 to-yellow-400 rounded-full flex items-center justify-center text-white shadow-xl shadow-amber-500/25 border border-amber-300/30 group-active:scale-90 transition-all">
                     <Share2 size={22} />
                   </div>
-                  <span className="text-amber-400 text-[10px] font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                    {isArabic ? 'إحالة' : 'Invite'}
+                  <span className="text-amber-400 text-[11px] font-extrabold tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+                    {isArabic ? '+50 نقطة' : '+50 Coins'}
                   </span>
                 </button>
               </div>
 
-              {/* Bottom Episode Info Overlay */}
-              <div className="absolute bottom-0 left-0 right-16 p-4 pb-6 bg-gradient-to-t from-black via-black/60 to-transparent pointer-events-none">
-                <div className="pointer-events-auto">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="px-2 py-0.5 bg-red-600 text-white font-extrabold text-[10px] rounded uppercase tracking-wider">
+              {/* Bottom Episode Info & Details Overlay */}
+              <div className="absolute bottom-0 left-0 right-16 p-4 pb-6 bg-gradient-to-t from-black/95 via-black/60 to-transparent pointer-events-none">
+                <div className="pointer-events-auto space-y-1.5">
+                  {/* Series Title & Badges */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="px-2.5 py-0.5 bg-gradient-to-r from-red-600 to-orange-600 text-white font-extrabold text-[10px] rounded-full uppercase tracking-wider shadow-md border border-red-400/30">
                       {isArabic ? `الحلقة ${ep.episodeNumber}` : `Ep ${ep.episodeNumber}`}
                     </span>
-                    <h3 className="text-white font-bold text-sm tracking-tight drop-shadow-md truncate max-w-[200px]">
-                      {ep.title}
-                    </h3>
+                    <span className="px-2 py-0.5 bg-white/15 text-white/90 text-[10px] font-bold rounded-full backdrop-blur-md border border-white/10">
+                      HD 1080p
+                    </span>
+                    <span className="px-2 py-0.5 bg-amber-500/20 text-amber-300 text-[10px] font-bold rounded-full backdrop-blur-md border border-amber-500/30 flex items-center gap-1">
+                      ★ {movie.rating}
+                    </span>
                   </div>
-                  <p className="text-white/70 text-[11px] line-clamp-2 drop-shadow-md mb-2">
+
+                  {/* Title */}
+                  <h3 className="text-white font-extrabold text-base tracking-tight drop-shadow-lg truncate max-w-[260px]">
+                    {movie.title} - {ep.title}
+                  </h3>
+
+                  {/* Description */}
+                  <p className="text-white/80 text-xs line-clamp-2 leading-relaxed drop-shadow-md">
                     {movie.description}
                   </p>
                 </div>

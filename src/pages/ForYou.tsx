@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Heart, Share2, MessageCircle, Bookmark, PlayCircle } from 'lucide-react';
+import { Heart, Share2, MessageCircle, Bookmark, PlayCircle, Plus } from 'lucide-react';
 import { useAppStore } from '../store';
 import { ReelPlayer } from '../components/ReelPlayer';
 import { Movie } from '../types';
@@ -102,7 +102,7 @@ export const ForYou = () => {
   return (
     <div className="bg-black fixed inset-0 z-50 flex flex-col pb-24">
       {/* Top Header overlay */}
-      <div className="absolute top-0 left-0 right-0 p-4 pt-12 flex items-center justify-center z-20 bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
+      <div className="absolute top-0 left-0 right-0 p-4 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] flex items-center justify-center z-20 bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
         <div className="px-4 py-1.5 bg-black/40  rounded-full text-white font-bold text-sm pointer-events-auto border border-white/10">
           {t('forYou', 'For You')}
         </div>
@@ -158,83 +158,126 @@ export const ForYou = () => {
               />
             )}
 
-            {/* Right Side Actions */}
-            <div className="absolute right-3 bottom-28 flex flex-col items-center gap-5 z-20 pointer-events-auto">
+            {/* Right Side Action Buttons */}
+            <div className="absolute right-3.5 bottom-24 flex flex-col items-center gap-4 z-20 pointer-events-auto">
+              {/* Series Avatar Poster with Plus Badge */}
+              <div 
+                className="relative mb-1 group cursor-pointer"
+                onClick={() => navigate(`/watch/${movie.id}?ep=${ep.id}`)}
+              >
+                <div className="w-12 h-12 rounded-full p-[2px] bg-gradient-to-tr from-red-600 via-orange-500 to-amber-400 shadow-xl shadow-red-600/20 group-active:scale-95 transition-transform">
+                  <img 
+                    src={movie.posterUrl} 
+                    alt={movie.title} 
+                    className="w-full h-full object-cover rounded-full" 
+                  />
+                </div>
+                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 bg-red-600 text-white rounded-full p-0.5 shadow-md border border-black">
+                  <Plus size={12} strokeWidth={3} />
+                </div>
+              </div>
+
+              {/* Like / Favorite Button */}
               <button 
                 onClick={() => toggleFavorite(movie.id)}
                 className="flex flex-col items-center gap-1 group"
               >
-                <div className="w-12 h-12 bg-black/30  rounded-full flex items-center justify-center text-white border border-white/20 group-active:opacity-80 transition-transform shadow-lg">
-                  <Heart size={24} className={isFav ? "fill-red-500 text-red-500" : ""} />
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-xl transition-all duration-200 border shadow-lg group-active:scale-90 ${
+                  isFav 
+                    ? "bg-red-600/30 border-red-500/60 text-red-500 shadow-red-600/30" 
+                    : "bg-black/45 border-white/15 text-white hover:border-white/30"
+                }`}>
+                  <Heart size={24} className={isFav ? "fill-red-500 text-red-500 animate-bounce" : "text-white"} />
                 </div>
-                <span className="text-white text-[10px] font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{(movie.rating * 1000).toLocaleString()}</span>
+                <span className="text-white text-[11px] font-extrabold tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+                  {(movie.rating * 1250).toLocaleString()}
+                </span>
               </button>
               
-              <button className="flex flex-col items-center gap-1 group">
-                <div className="w-12 h-12 bg-black/30  rounded-full flex items-center justify-center text-white border border-white/20 group-active:opacity-80 transition-transform shadow-lg">
-                  <MessageCircle size={24} className="fill-white/80" />
+              {/* Comments Button */}
+              <button 
+                onClick={() => navigate(`/watch/${movie.id}?ep=${ep.id}`)}
+                className="flex flex-col items-center gap-1 group"
+              >
+                <div className="w-12 h-12 bg-black/45 backdrop-blur-xl rounded-full flex items-center justify-center text-white border border-white/15 group-active:scale-90 transition-all shadow-lg hover:border-white/30">
+                  <MessageCircle size={22} className="fill-white/20" />
                 </div>
-                <span className="text-white text-[10px] font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">2.1K</span>
+                <span className="text-white text-[11px] font-extrabold tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+                  2.4K
+                </span>
               </button>
 
-              <button className="flex flex-col items-center gap-1 group">
-                <div className="w-12 h-12 bg-black/30  rounded-full flex items-center justify-center text-white border border-white/20 group-active:opacity-80 transition-transform shadow-lg">
-                  <Bookmark size={24} className="fill-white/80" />
+              {/* Save / Bookmark Button */}
+              <button 
+                onClick={() => toggleFavorite(movie.id)}
+                className="flex flex-col items-center gap-1 group"
+              >
+                <div className="w-12 h-12 bg-black/45 backdrop-blur-xl rounded-full flex items-center justify-center text-white border border-white/15 group-active:scale-90 transition-all shadow-lg hover:border-white/30">
+                  <Bookmark size={22} className={isFav ? "fill-amber-400 text-amber-400" : "fill-white/20"} />
                 </div>
-                <span className="text-white text-[10px] font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{t('save', 'Save')}</span>
+                <span className="text-white text-[11px] font-extrabold tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+                  {t('save', 'حفظ')}
+                </span>
               </button>
 
+              {/* Share Button */}
               <button 
                 onClick={() => {
                   if (navigator.share) {
                     navigator.share({
                       title: movie.title,
-                      text: `Watch ${movie.title} on Drama Reel!`,
+                      text: `مشاهدة ${movie.title} على Drama Reel!`,
                       url: window.location.href
                     }).catch(console.error);
                   }
                 }}
                 className="flex flex-col items-center gap-1 group"
               >
-                <div className="w-12 h-12 bg-black/30  rounded-full flex items-center justify-center text-white border border-white/20 group-active:opacity-80 transition-transform shadow-lg">
-                  <Share2 size={24} />
+                <div className="w-12 h-12 bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 rounded-full flex items-center justify-center text-white shadow-xl shadow-indigo-600/25 border border-indigo-400/30 group-active:scale-90 transition-all">
+                  <Share2 size={22} />
                 </div>
-                <span className="text-white text-[10px] font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{t('share', 'Share')}</span>
+                <span className="text-indigo-300 text-[11px] font-extrabold tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+                  {t('share', 'مشاركة')}
+                </span>
               </button>
             </div>
 
             {/* Bottom Info Overlay */}
-            <div className="absolute bottom-0 left-0 right-12 p-3 pb-28 bg-gradient-to-t from-black/60 to-transparent pointer-events-none">
+            <div className="absolute bottom-0 left-0 right-16 p-4 pb-20 bg-gradient-to-t from-black/95 via-black/60 to-transparent pointer-events-none">
               <div 
-                className="pointer-events-auto opacity-80 hover:opacity-100 transition-opacity cursor-pointer"
+                className="pointer-events-auto space-y-2 cursor-pointer"
                 onClick={() => navigate(`/watch/${movie.id}?ep=${ep.id}`)}
               >
-                <div className="flex items-center gap-2 mb-1.5">
-                  <h3 className="text-white font-bold text-sm tracking-tight drop-shadow-md">
-                    {movie.title}
-                  </h3>
-                  <span className="px-1.5 py-0.5 bg-red-600/80 text-white text-[9px] font-bold rounded uppercase tracking-widest">
-                    {t('episodes', 'Ep')} {ep.episodeNumber}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="px-2.5 py-0.5 bg-gradient-to-r from-red-600 to-orange-600 text-white font-extrabold text-[10px] rounded-full uppercase tracking-wider shadow-md border border-red-400/30">
+                    {t('episodes', 'الحلقة')} {ep.episodeNumber}
+                  </span>
+                  <span className="px-2 py-0.5 bg-white/15 text-white/90 text-[10px] font-bold rounded-full backdrop-blur-md border border-white/10">
+                    {movie.category}
+                  </span>
+                  <span className="px-2 py-0.5 bg-amber-500/20 text-amber-300 text-[10px] font-bold rounded-full backdrop-blur-md border border-amber-500/30 flex items-center gap-1">
+                    ★ {movie.rating}
                   </span>
                 </div>
-                <p className="text-white/70 text-[10px] line-clamp-2 drop-shadow-md mb-2 max-w-[80%]">
+
+                <h3 className="text-white font-extrabold text-base tracking-tight drop-shadow-lg truncate max-w-[250px]">
+                  {movie.title}
+                </h3>
+
+                <p className="text-white/80 text-xs line-clamp-2 leading-relaxed drop-shadow-md">
                   {ep.title !== movie.title ? `${ep.title} - ` : ''}{movie.description}
                 </p>
-                <div className="flex flex-col gap-2.5 mt-2">
-                  <div className="flex items-center gap-1.5">
-                    <span className="px-1 py-0.5 bg-white/10  text-white text-[8px] font-bold rounded uppercase tracking-widest">
-                      {movie.category}
-                    </span>
-                  </div>
+
+                <div className="pt-1">
                   <button 
                     onClick={(e) => {
                       e.stopPropagation();
                       navigate(`/watch/${movie.id}?ep=${ep.id}`);
                     }}
-                    className="flex items-center justify-center gap-2 w-[85%] bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-xl text-xs transition-colors shadow-lg shadow-red-600/20 active:opacity-80"
+                    className="bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg shadow-red-600/30 flex items-center gap-1.5 border border-red-400/30 active:scale-95 transition-all"
                   >
-                    <PlayCircle size={16} />
-                    {t('continueWatching', 'Continue Watching')}
+                    <PlayCircle size={14} />
+                    <span>{t('watchFullMovie', 'مشاهدة المسلسل')}</span>
                   </button>
                 </div>
               </div>
