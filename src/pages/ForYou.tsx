@@ -1,18 +1,74 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Heart, Share2, MessageCircle, Bookmark, PlayCircle, Plus } from 'lucide-react';
+import { Heart, Share2, MessageCircle, Bookmark, PlayCircle, Plus, Zap, Sparkles, Crown, Tv, Gift } from 'lucide-react';
 import { useAppStore } from '../store';
 import { ReelPlayer } from '../components/ReelPlayer';
+import { TonPaymentModal } from '../components/TonPaymentModal';
+import { showAdsgramAd, ADSGRAM_BLOCKS } from '../services/adsgramService';
 import { Movie } from '../types';
 
 export const ForYou = () => {
   const navigate = useNavigate();
-  const { t } = useTranslation();
-  const { movies, toggleFavorite, favorites, unlockedEpisodes, spendCoins, unlockEpisode, coins, isVipActive } = useAppStore();
+  const { t, i18n } = useTranslation();
+  const isArabic = i18n.language === 'ar';
+  const { movies, toggleFavorite, favorites, unlockedEpisodes, spendCoins, unlockEpisode, coins, isVipActive, updateHistory } = useAppStore();
   const isVip = isVipActive();
   
   const [showUnlockModal, setShowUnlockModal] = useState<string | null>(null);
+  const [showTonModal, setShowTonModal] = useState(false);
+  const [isAdLoading, setIsAdLoading] = useState(false);
+
+  const handleUnlockWithAdsgram = async (epId: string) => {
+    setIsAdLoading(true);
+    const success = await showAdsgramAd(ADSGRAM_BLOCKS.EPISODE_REWARD);
+    setIsAdLoading(false);
+
+    if (success) {
+      unlockEpisode(epId);
+
+      // Try to unlock pair episode in the feed if found
+      const currentItem = allEpisodes.find(item => item.episode.id === epId);
+      if (currentItem) {
+        const currentEp = currentItem.episode;
+        const pairEpNum = currentEp.episodeNumber % 2 === 1 
+          ? currentEp.episodeNumber + 1 
+          : currentEp.episodeNumber - 1;
+        
+        const pairItem = allEpisodes.find(
+          item => item.movie.id === currentItem.movie.id && item.episode.episodeNumber === pairEpNum
+        );
+        if (pairItem) {
+          unlockEpisode(pairItem.episode.id);
+        }
+      }
+
+      setShowUnlockModal(null);
+    }
+  };
+
+  // Auto-hiding controls timer (4 seconds of no touch)
+  const [areControlsVisible, setAreControlsVisible] = useState(true);
+  const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const resetControlsTimer = () => {
+    setAreControlsVisible(true);
+    if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
+    hideTimeoutRef.current = setTimeout(() => {
+      setAreControlsVisible(false);
+    }, 4000);
+  };
+
+  const handleScreenTouch = () => {
+    resetControlsTimer();
+  };
+
+  useEffect(() => {
+    resetControlsTimer();
+    return () => {
+      if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
+    };
+  }, []);
 
   // Combine all episodes from all movies
   const allEpisodes = useMemo(() => {
@@ -97,15 +153,50 @@ export const ForYou = () => {
     };
   }, [allEpisodes]);
 
+  // Sync Watch History when user scrolls to an episode in ForYou feed
+  useEffect(() => {
+    if (activeEpisodeId && allEpisodes.length > 0) {
+      const currentItem = allEpisodes.find(item => item.episode.id === activeEpisodeId);
+      if (currentItem) {
+        const { movie, episode } = currentItem;
+        const totalEps = movie.episodes?.length || 1;
+        const pct = Math.min(100, Math.round((episode.episodeNumber / totalEps) * 100));
+        updateHistory(movie.id, {
+          movieId: movie.id,
+          episodeId: episode.id,
+          episodeNumber: episode.episodeNumber,
+          lastWatchedMinute: episode.episodeNumber,
+          updatedAt: Date.now(),
+          percentage: pct
+        });
+      }
+    }
+  }, [activeEpisodeId, allEpisodes, updateHistory]);
+
   if (allEpisodes.length === 0) return null;
 
   return (
-    <div className="bg-black fixed inset-0 z-50 flex flex-col pb-24">
+    <div 
+      onClick={handleScreenTouch}
+      onTouchStart={handleScreenTouch}
+      className="bg-black fixed inset-0 z-50 flex flex-col pb-24 select-none"
+    >
       {/* Top Header overlay */}
-      <div className="absolute top-0 left-0 right-0 p-4 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] flex items-center justify-center z-20 bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
-        <div className="px-4 py-1.5 bg-black/40  rounded-full text-white font-bold text-sm pointer-events-auto border border-white/10">
+      <div className={`absolute top-0 left-0 right-0 p-4 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] flex items-center justify-between z-40 bg-gradient-to-b from-black/90 via-black/40 to-transparent transition-all duration-500 ${
+        areControlsVisible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+      }`}>
+        <div className="px-4 py-1.5 bg-black/50 rounded-full text-white font-bold text-sm pointer-events-auto border border-white/10 backdrop-blur-md">
           {t('forYou', 'For You')}
         </div>
+
+        {/* TON Payment Button */}
+        <button 
+          onClick={() => setShowTonModal(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-[#0098EA] to-blue-600 rounded-full text-white font-extrabold text-xs shadow-lg shadow-[#0098EA]/30 border border-[#0098EA]/40 pointer-events-auto active:scale-95 transition-transform"
+        >
+          <Zap size={14} className="text-yellow-300 animate-pulse" />
+          <span>{isArabic ? 'عملة TON' : 'TON Pay'}</span>
+        </button>
       </div>
 
       {/* Vertical Scroll Container */}
@@ -118,7 +209,7 @@ export const ForYou = () => {
         {allEpisodes.map((item, index) => {
           const { movie, episode: ep } = item;
           const isFav = favorites.includes(movie.id);
-          const isLocked = !isVip && ep.episodeNumber > 2 && !unlockedEpisodes.includes(ep.id);
+          const isLocked = !isVip && ep.episodeNumber > 6 && !unlockedEpisodes.includes(ep.id);
           const isCurrentActive = activeEpisodeId === ep.id;
           
           // Need unique key because same episode might appear (shouldn't if feed is unique, but just in case)
@@ -132,16 +223,21 @@ export const ForYou = () => {
           >
             {isLocked ? (
               <div className="absolute inset-0 bg-[#050505] flex flex-col items-center justify-center z-10 px-6 text-center">
-                <div className="w-20 h-20 bg-red-600/10 rounded-full flex items-center justify-center mb-4">
+                <div className="w-20 h-20 bg-red-600/10 rounded-3xl flex items-center justify-center mb-4 border border-red-500/30 shadow-lg shadow-red-600/20">
                   <span className="text-3xl">🔒</span>
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">{t('lockedEpisode', 'Locked Episode')}</h3>
-                <p className="text-white/60 text-sm mb-6">{t('unlockToWatch', 'Unlock this episode to continue watching')}</p>
+                <h3 className="text-xl font-black text-white mb-2">{isArabic ? `الحلقة ${ep.episodeNumber} مغلقة` : `Episode ${ep.episodeNumber} Locked`}</h3>
+                <p className="text-white/60 text-xs mb-6 max-w-xs leading-relaxed">
+                  {isArabic 
+                    ? 'الحلقات من 1 إلى 6 مجانية بالكامل! شاهد إعلان قصير لفتح هذه الحلقة والحلقة التالية معاً.' 
+                    : 'Episodes 1-6 are free! Watch a short ad to unlock 2 episodes.'}
+                </p>
                 <button 
                   onClick={() => setShowUnlockModal(ep.id)}
-                  className="bg-gradient-to-r from-red-600 to-orange-500 text-white font-bold py-3 px-8 rounded-full shadow-[0_4px_20px_rgba(229,9,20,0.5)] active:opacity-80 transition-transform"
+                  className="bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-500 hover:to-orange-400 text-white font-black py-3.5 px-8 rounded-2xl shadow-[0_4px_25px_rgba(229,9,20,0.5)] active:scale-95 transition-all text-xs flex items-center gap-2"
                 >
-                  {t('unlockForCoins', 'Unlock for 50 Coins')}
+                  <Tv size={16} />
+                  <span>{isArabic ? 'فتح بإعلان قصير' : 'Unlock with Short Ad'}</span>
                 </button>
               </div>
             ) : (
@@ -159,7 +255,9 @@ export const ForYou = () => {
             )}
 
             {/* Right Side Action Buttons */}
-            <div className="absolute right-3.5 bottom-24 flex flex-col items-center gap-4 z-20 pointer-events-auto">
+            <div className={`absolute right-3.5 bottom-24 flex flex-col items-center gap-4 z-20 transition-all duration-500 ${
+              areControlsVisible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+            }`}>
               {/* Series Avatar Poster with Plus Badge */}
               <div 
                 className="relative mb-1 group cursor-pointer"
@@ -167,7 +265,7 @@ export const ForYou = () => {
               >
                 <div className="w-12 h-12 rounded-full p-[2px] bg-gradient-to-tr from-red-600 via-orange-500 to-amber-400 shadow-xl shadow-red-600/20 group-active:scale-95 transition-transform">
                   <img 
-                    src={movie.posterUrl} 
+                    src={movie.coverImage} 
                     alt={movie.title} 
                     className="w-full h-full object-cover rounded-full" 
                   />
@@ -243,7 +341,9 @@ export const ForYou = () => {
             </div>
 
             {/* Bottom Info Overlay */}
-            <div className="absolute bottom-0 left-0 right-16 p-4 pb-20 bg-gradient-to-t from-black/95 via-black/60 to-transparent pointer-events-none">
+            <div className={`absolute bottom-0 left-0 right-16 p-4 pb-20 bg-gradient-to-t from-black/95 via-black/60 to-transparent transition-all duration-500 ${
+              areControlsVisible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+            }`}>
               <div 
                 className="pointer-events-auto space-y-2 cursor-pointer"
                 onClick={() => navigate(`/watch/${movie.id}?ep=${ep.id}`)}
@@ -287,43 +387,92 @@ export const ForYou = () => {
         })}
       </div>
 
-      {/* Unlock Modal */}
+      {/* Unlock Modal with Adsgram & VIP options */}
       {showUnlockModal && (
-        <div className="absolute inset-0 z-[60] bg-black/80  flex items-center justify-center p-4">
-          <div className="bg-[#111] border border-white/10 rounded-3xl p-6 w-full max-w-sm flex flex-col items-center text-center shadow-2xl">
-            <div className="w-16 h-16 bg-yellow-500/10 rounded-full flex items-center justify-center mb-4 border border-yellow-500/20">
-              <span className="text-2xl text-yellow-500 font-bold">50</span>
+        <div className="absolute inset-0 z-[60] bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-[#121212] border border-amber-500/30 rounded-3xl p-6 w-full max-w-sm flex flex-col items-center text-center shadow-2xl relative overflow-hidden">
+            {/* Top Badge */}
+            <div className="bg-gradient-to-r from-amber-500 to-yellow-400 text-black text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider mb-3 shadow-md flex items-center gap-1">
+              <Sparkles size={12} className="fill-black" />
+              <span>{isArabic ? 'الحلقات 1 إلى 6 مجانية بالكامل!' : 'Episodes 1-6 are 100% Free!'}</span>
             </div>
-            <h3 className="text-xl font-bold text-white mb-2">{t('unlockEpisode', 'Unlock Episode')}</h3>
-            <p className="text-white/60 text-sm mb-6">
-              {t('unlockCost', 'This episode costs 50 coins to unlock. You have')} <span className="font-bold text-yellow-500">{coins} {t('coins', 'Coins')}</span>.
+
+            <div className="w-16 h-16 bg-gradient-to-tr from-red-600 to-orange-500 rounded-2xl flex items-center justify-center mb-3 text-white shadow-lg shadow-red-600/30">
+              <Tv size={28} />
+            </div>
+
+            <h3 className="text-lg font-black text-white mb-1">
+              {isArabic ? 'مشاهدة إعلان قصير لفتح حلقتين' : 'Watch Short Ad to Unlock 2 Episodes'}
+            </h3>
+            
+            <p className="text-white/60 text-xs mb-5 leading-relaxed">
+              {isArabic 
+                ? 'شاهد إعلان قصير لتمرير هذه الحلقة والحلقة التالية مجاناً، أو اشترك في VIP لمشاهدة جميع الحلقات بلا إعلانات.' 
+                : 'Watch a quick ad to unlock this episode & the next one free, or activate VIP for zero ads.'}
             </p>
-            <div className="flex gap-3 w-full">
+
+            <div className="flex flex-col gap-2.5 w-full">
+              {/* Option 1: Watch Ad */}
               <button 
-                onClick={() => setShowUnlockModal(null)}
-                className="flex-1 py-3 rounded-full bg-white/10 text-white font-bold text-sm hover:bg-white/20 transition-colors"
+                onClick={() => handleUnlockWithAdsgram(showUnlockModal)}
+                disabled={isAdLoading}
+                className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-500 hover:to-orange-400 text-white font-black text-xs shadow-lg shadow-red-600/30 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                {t('cancel', 'Cancel')}
+                {isAdLoading ? (
+                  <span>{isArabic ? 'جاري تحميل الإعلان...' : 'Loading Ad...'}</span>
+                ) : (
+                  <>
+                    <Tv size={16} />
+                    <span>{isArabic ? 'مشاهدة إعلان (فتح حلقتين)' : 'Watch Short Ad (Unlock 2 Ep)'}</span>
+                  </>
+                )}
               </button>
+
+              {/* Option 2: Coins Unlock if available */}
+              {coins >= 50 && (
+                <button 
+                  onClick={() => {
+                    if (spendCoins(50, isArabic ? 'فتح حلقة' : 'Unlock Episode')) {
+                      unlockEpisode(showUnlockModal);
+                      setShowUnlockModal(null);
+                    }
+                  }}
+                  className="w-full py-3 px-4 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/10 text-yellow-300 font-extrabold text-xs active:scale-95 transition-all flex items-center justify-center gap-2"
+                >
+                  <Gift size={16} />
+                  <span>{isArabic ? 'فتح مقابل 50 نقطة' : 'Unlock for 50 Coins'}</span>
+                </button>
+              )}
+
+              {/* Option 3: Activate VIP */}
               <button 
                 onClick={() => {
-                  if (spendCoins(50, 'فتح حلقة للمشاهدة')) {
-                    unlockEpisode(showUnlockModal);
-                    setShowUnlockModal(null);
-                  } else {
-                    alert(t('notEnoughCoins', 'Not enough coins. Get more in your profile!'));
-                    setShowUnlockModal(null);
-                    navigate('/profile');
-                  }
+                  setShowUnlockModal(null);
+                  setShowTonModal(true);
                 }}
-                className="flex-1 py-3 rounded-full bg-gradient-to-r from-yellow-600 to-orange-500 text-white font-bold text-sm hover:from-yellow-500 hover:to-orange-400 transition-colors shadow-lg"
+                className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-black font-black text-xs shadow-md active:scale-95 transition-all flex items-center justify-center gap-2"
               >
-                {t('unlockNow', 'Unlock Now')}
+                <Crown size={16} className="fill-black" />
+                <span>{isArabic ? 'تفعيل اشتراك VIP (بدون إعلانات)' : 'Activate VIP Pass (No Ads)'}</span>
+              </button>
+
+              {/* Option 4: Close */}
+              <button 
+                onClick={() => setShowUnlockModal(null)}
+                className="w-full py-2 rounded-xl text-white/50 text-xs hover:text-white transition-colors"
+              >
+                {isArabic ? 'إلغاء' : 'Cancel'}
               </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* TON Crypto Payment Modal */}
+      <TonPaymentModal 
+        isOpen={showTonModal} 
+        onClose={() => setShowTonModal(false)} 
+      />
     </div>
   );
 };

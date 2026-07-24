@@ -3,15 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../store';
 import { MovieCard } from '../components/MovieCard';
-import { Play, Search } from 'lucide-react';
+import { Play, Search, Crown } from 'lucide-react';
 import { fetchMoviesFromDB } from '../services/movieService';
 
 export const Home = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { movies, setMovies, coins } = useAppStore();
+  const { movies, setMovies, coins, isVipActive } = useAppStore();
   const [loading, setLoading] = useState(true);
   const [avatar, setAvatar] = useState('https://api.dicebear.com/7.x/avataaars/svg?seed=Felix');
+
+  const isVip = isVipActive();
 
   useEffect(() => {
     if ((window as any).Telegram?.WebApp?.initDataUnsafe?.user?.photo_url) {
@@ -76,10 +78,14 @@ export const Home = () => {
           >
             <Search size={18} />
           </button>
-          <div className="flex items-center gap-2 bg-[#1A1A1A] px-3 py-1.5 rounded-full border border-white/5">
-            <div className="w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center text-[10px] font-bold text-black">$</div>
-            <span className="text-xs font-semibold text-white">{coins}</span>
-          </div>
+          <button 
+            onClick={() => navigate('/profile')}
+            className="flex items-center gap-2 bg-[#1A1A1A] hover:bg-[#222] px-3 py-1.5 rounded-full border border-amber-500/30 text-white active:scale-95 transition-all"
+          >
+            <div className="w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center text-[10px] font-black text-black">$</div>
+            <span className="text-xs font-bold text-yellow-400">{coins}</span>
+            {isVip && <Crown size={12} className="text-amber-400 fill-amber-400" />}
+          </button>
           <button onClick={() => navigate('/profile')} className="active:opacity-80 transition-transform">
             <img src={avatar} className="w-9 h-9 rounded-full border border-red-600/30 bg-[#1A1A1A] object-cover" alt="avatar" />
           </button>

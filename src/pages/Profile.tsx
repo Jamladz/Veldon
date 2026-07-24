@@ -5,6 +5,9 @@ import { Clock, Film, Tv, Flame, Gift, Settings, Crown, Share2, Wallet, User, Us
 import { useAppStore } from '../store';
 import { TonConnectButton, useTonConnectUI, useTonAddress } from '@tonconnect/ui-react';
 import { ReferralHub } from '../components/ReferralHub';
+import { TonPaymentModal } from '../components/TonPaymentModal';
+import { TON_CONFIG } from '../config/tonConfig';
+import { showAdsgramAd, ADSGRAM_BLOCKS } from '../services/adsgramService';
 
 declare global {
   interface Window {
@@ -31,17 +34,50 @@ export const Profile = () => {
     premiumUntil, 
     setPremiumUntil,
     buyVipPass,
-    isVipActive 
+    isVipActive,
+    getTotalCoinsEarned
   } = useAppStore();
   
   const [tgUser, setTgUser] = useState<any>(null);
   const [showReferralModal, setShowReferralModal] = useState(false);
   const [showTransactionsModal, setShowTransactionsModal] = useState(false);
   const [showVipShopModal, setShowVipShopModal] = useState(false);
+  const [showTonModal, setShowTonModal] = useState(false);
+  const [isClaimingDaily, setIsClaimingDaily] = useState(false);
   const userAddress = useTonAddress();
   const [tonConnectUI] = useTonConnectUI();
   
   const isPremium = isVipActive();
+  const totalCoinsEarned = getTotalCoinsEarned();
+  const remainingVipDays = premiumUntil && premiumUntil > Date.now() 
+    ? Math.ceil((premiumUntil - Date.now()) / (1000 * 60 * 60 * 24)) 
+    : 0;
+
+  const handleClaimDailyWithAd = async () => {
+    setIsClaimingDaily(true);
+    try {
+      // Trigger Adsgram Ad int-39489 for daily attendance streak
+      const success = await showAdsgramAd(ADSGRAM_BLOCKS.DAILY_STREAK);
+      if (success) {
+        const res = claimDailyReward();
+        if (res.success) {
+          const newTotalBalance = coins + res.reward;
+          const newLifetimeEarned = totalCoinsEarned + res.reward;
+          alert(
+            isArabic 
+              ? `🎉 تهانينا! تمت مشاهدة الإعلان واستلام مكافأة اليوم ${res.streak}: +${res.reward} نقطة!\n💰 مجموع نقاطك الحالي: ${newTotalBalance} نقطة\n🏆 إجمالي النقاط المكتسبة كلياً: ${newLifetimeEarned} نقطة` 
+              : `🎉 Congratulations! Claimed Day ${res.streak} reward: +${res.reward} coins!\n💰 Current Balance: ${newTotalBalance} coins\n🏆 Total Earned: ${newLifetimeEarned} coins`
+          );
+        } else {
+          alert(isArabic ? 'لقد قمت باستلام مكافأتك اليومية بالفعل. عد غداً!' : 'Already claimed today! Come back tomorrow.');
+        }
+      }
+    } catch (err) {
+      console.error('Error claiming daily reward with ad:', err);
+    } finally {
+      setIsClaimingDaily(false);
+    }
+  };
 
   useEffect(() => {
     if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
@@ -79,7 +115,11 @@ export const Profile = () => {
     }
     const success = buyVipPass(days, cost);
     if (success) {
-      alert(isArabic ? `تم تفعيل اشتراك VIP بنجاح لمدة ${days} أيام! 🎉` : `VIP active for ${days} days! 🎉`);
+      alert(
+        isArabic 
+          ? `🎉 تم تفعيل اشتراك VIP بنجاح لمدة ${days} أيام!\n💰 المتبقي في رصيدك: ${coins - cost} نقطة.` 
+          : `🎉 VIP active for ${days} days!\n💰 Remaining balance: ${coins - cost} coins.`
+      );
       setShowVipShopModal(false);
     }
   };
@@ -134,6 +174,15 @@ export const Profile = () => {
               <span className="text-yellow-300 font-extrabold text-sm tracking-wide" dir="ltr">{user.coins}</span>
               <span className="text-[10px] text-yellow-400/80 font-bold">{isArabic ? 'نقطة' : 'coins'}</span>
             </div>
+
+            <button 
+              onClick={() => setShowTonModal(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-[#0098EA] to-blue-600 rounded-full text-white font-black text-xs shadow-lg shadow-[#0098EA]/30 border border-[#0098EA]/40 active:scale-95 transition-all"
+            >
+              <Wallet size={14} className="text-yellow-300" />
+              <span>{isArabic ? 'دفع TON' : 'TON Pay'}</span>
+            </button>
+
             <button 
               onClick={() => setShowTransactionsModal(true)}
               className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 active:scale-90 transition-all shadow-md"
@@ -212,13 +261,23 @@ export const Profile = () => {
             </div>
 
             {/* Membership status line */}
-            <div className="mt-1 flex items-center gap-1.5 text-[11px]">
-              <span className={`w-2 h-2 rounded-full ${isPremium ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse' : 'bg-white/30'}`} />
-              <span className={`font-semibold ${isPremium ? 'text-emerald-400' : 'text-white/50'}`}>
-                {isPremium 
-                  ? (isArabic ? 'اشتراك VIP نشط' : 'VIP Membership Active') 
-                  : (isArabic ? 'العضوية المجانية' : 'Free Membership')}
-              </span>
+            <div className="mt-1 flex items-center justify-between gap-2 text-[11px] flex-wrap">
+              <div className="flex items-center gap-1.5">
+                <span className={`w-2 h-2 rounded-full ${isPremium ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse' : 'bg-white/30'}`} />
+                <span className={`font-semibold ${isPremium ? 'text-emerald-400' : 'text-white/50'}`}>
+                  {isPremium 
+                    ? (isArabic ? `اشتراك VIP نشط (${remainingVipDays} يوم متبقي)` : `VIP Active (${remainingVipDays} days left)`) 
+                    : (isArabic ? 'العضوية المجانية' : 'Free Membership')}
+                </span>
+              </div>
+              
+              <button 
+                onClick={() => setShowTonModal(true)}
+                className="text-[10px] bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-extrabold px-2.5 py-1 rounded-full border border-amber-500/30 active:scale-95 transition-all flex items-center gap-1"
+              >
+                <Crown size={11} className="fill-amber-300" />
+                <span>{isPremium ? (isArabic ? 'تمديد الاشتراك' : 'Extend VIP') : (isArabic ? 'ترقية لـ VIP' : 'Upgrade VIP')}</span>
+              </button>
             </div>
           </div>
         </div>
@@ -294,22 +353,25 @@ export const Profile = () => {
           </div>
 
           <button 
-            onClick={() => {
-              const res = claimDailyReward();
-              if (res.success) {
-                alert(isArabic ? `تم استلام مكافأة اليوم ${res.streak}! +${res.reward} نقطة 🎉` : `Claimed Day ${res.streak}! +${res.reward} coins 🎉`);
-              } else {
-                alert(isArabic ? 'لقد قمت باستملاط مكافأتك اليومية بالفعل. عد غداً!' : 'Already claimed today! Come back tomorrow.');
-              }
-            }}
-            className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 text-black font-black text-xs py-2.5 rounded-xl shadow-lg active:scale-98 transition-transform"
+            onClick={handleClaimDailyWithAd}
+            disabled={isClaimingDaily}
+            className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-black font-black text-xs py-3 rounded-2xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            {isArabic ? 'استلام المكافأة اليومية' : 'Claim Daily Reward'}
+            {isClaimingDaily ? (
+              <span>{isArabic ? 'جاري تحميل الإعلان...' : 'Loading Ad...'}</span>
+            ) : (
+              <span>{isArabic ? 'استلام المكافأة اليومية (إعلان)' : 'Claim Daily Reward (Watch Ad)'}</span>
+            )}
           </button>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <div className="bg-[#111111] border border-yellow-500/20 rounded-2xl p-3 flex flex-col items-center justify-center gap-1.5 shadow-lg shadow-amber-500/5">
+            <Gift size={18} className="text-yellow-400" />
+            <div className="text-lg font-black text-yellow-300 leading-none" dir="ltr">{totalCoinsEarned}</div>
+            <div className="text-[9px] text-yellow-400/80 uppercase font-bold text-center">{isArabic ? 'مجموع الكسب' : 'Total Earned'}</div>
+          </div>
           <div className="bg-[#111111] border border-white/5 rounded-2xl p-3 flex flex-col items-center justify-center gap-1.5">
             <Clock size={18} className="text-red-500" />
             <div className="text-lg font-black text-white leading-none" dir="ltr">{user.watchedHours}h</div>
@@ -325,7 +387,7 @@ export const Profile = () => {
             <div className="text-lg font-black text-white leading-none" dir="ltr">{user.moviesCount}</div>
             <div className="text-[10px] text-white/40 uppercase font-bold text-center">{t('movies', 'Movies')}</div>
           </div>
-          <div className="bg-[#111111] border border-white/5 rounded-2xl p-3 flex flex-col items-center justify-center gap-1.5">
+          <div className="bg-[#111111] border border-white/5 rounded-2xl p-3 flex flex-col items-center justify-center gap-1.5 col-span-2 sm:col-span-1">
             <Tv size={18} className="text-purple-500" />
             <div className="text-lg font-black text-white leading-none" dir="ltr">{user.seriesCount}</div>
             <div className="text-[10px] text-white/40 uppercase font-bold text-center">{t('series', 'Series')}</div>
@@ -375,7 +437,13 @@ export const Profile = () => {
             <button 
               onClick={() => {
                 if (claimAdReward()) {
-                  alert(isArabic ? 'شكراً لمشاهدتك! حصلت على +30 نقطة 🎉' : 'Thanks for watching! +30 Coins');
+                  const newBalance = coins + 30;
+                  const newEarned = totalCoinsEarned + 30;
+                  alert(
+                    isArabic 
+                      ? `🎉 شكراً لمشاهدتك! حصلت على +30 نقطة!\n💰 مجموع رصيد نقاطك الحالي: ${newBalance} نقطة\n🏆 إجمالي النقاط المكتسبة كلياً: ${newEarned} نقطة` 
+                      : `🎉 Thanks for watching! +30 Coins\n💰 Current Balance: ${newBalance} coins\n🏆 Total Earned: ${newEarned} coins`
+                  );
                 } else {
                   alert(isArabic ? 'الرجاء الانتظار 3 دقائق قبل مشاهدة إعلان آخر.' : 'Please wait 3 minutes before watching another ad.');
                 }
@@ -398,44 +466,38 @@ export const Profile = () => {
           <div className="flex flex-wrap items-center justify-between gap-2 mb-3 px-1">
             <h3 className="text-xs text-white/50 font-bold uppercase tracking-wider flex items-center gap-2">
               <Crown className="text-yellow-500" size={14} />
-              {t('premiumSubscription', 'Premium (Ad-Free)')}
+              {isArabic ? 'باقات VIP الرسمية (بدون إعلانات)' : 'Official VIP Plans (Ad-Free)'}
             </h3>
             <div className="scale-75 origin-right">
               <TonConnectButton />
             </div>
           </div>
           
-          <div className="grid grid-cols-3 gap-3">
-            <button 
-              onClick={() => handleSubscribeTon(1, 0.5)}
-              className="bg-[#111111] border border-white/5 p-3 sm:p-4 rounded-2xl flex flex-col items-center justify-center gap-2 active:opacity-70 transition-opacity"
-            >
-              <Wallet className="text-blue-500" size={20} />
-              <span className="font-bold text-xs sm:text-sm text-white text-center leading-tight">{t('1DayPlan', '1 Day')}</span>
-              <span className="text-[10px] sm:text-xs text-blue-400 font-bold bg-blue-500/20 px-2 py-1 rounded-md w-full text-center whitespace-nowrap" dir="ltr">0.5 TON</span>
-            </button>
-            <button 
-              onClick={() => handleSubscribeTon(7, 2)}
-              className="bg-[#111111] border border-yellow-500/30 p-3 sm:p-4 rounded-2xl flex flex-col items-center justify-center gap-2 relative overflow-hidden active:opacity-70 transition-opacity"
-            >
-              <div className="absolute top-0 inset-x-0 bg-red-600 text-white text-[8px] font-black text-center py-0.5 uppercase tracking-widest w-full">
-                Popular
-              </div>
-              <Wallet className="text-yellow-500 mt-2" size={20} />
-              <span className="font-bold text-xs sm:text-sm text-white text-center leading-tight">{t('7DaysPlan', '7 Days')}</span>
-              <span className="text-[10px] sm:text-xs text-yellow-500 font-bold bg-yellow-500/10 px-2 py-1 rounded-md w-full text-center whitespace-nowrap" dir="ltr">2 TON</span>
-            </button>
-            <button 
-              onClick={() => handleSubscribeTon(30, 8)}
-              className="bg-[#111111] border border-green-500/30 p-3 sm:p-4 rounded-2xl flex flex-col items-center justify-center gap-2 relative overflow-hidden active:opacity-70 transition-opacity"
-            >
-              <div className="absolute top-0 inset-x-0 bg-green-600 text-white text-[8px] font-black text-center py-0.5 uppercase tracking-widest w-full">
-                Best Value
-              </div>
-              <Wallet className="text-green-500 mt-2" size={20} />
-              <span className="font-bold text-xs sm:text-sm text-white text-center leading-tight">{t('30DaysPlan', '30 Days')}</span>
-              <span className="text-[10px] sm:text-xs text-green-500 font-bold bg-green-500/10 px-2 py-1 rounded-md w-full text-center whitespace-nowrap" dir="ltr">8 TON</span>
-            </button>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            {TON_CONFIG.PACKAGES.map((pkg) => (
+              <button 
+                key={pkg.id}
+                onClick={() => setShowTonModal(true)}
+                className={`bg-[#111111] border ${pkg.popular ? 'border-amber-500/50 shadow-lg shadow-amber-500/10' : 'border-white/10 hover:border-white/20'} p-3 rounded-2xl flex flex-col items-center justify-between gap-2 relative overflow-hidden active:scale-95 transition-all text-center min-h-[110px]`}
+              >
+                {pkg.popular && (
+                  <div className="absolute top-0 inset-x-0 bg-gradient-to-r from-amber-500 to-yellow-400 text-black text-[7px] font-black text-center py-0.5 uppercase tracking-wider w-full">
+                    {isArabic ? pkg.badgeAr : pkg.badgeEn}
+                  </div>
+                )}
+                <div className={`w-8 h-8 rounded-xl bg-gradient-to-tr ${pkg.color} flex items-center justify-center text-white font-black shrink-0 ${pkg.popular ? 'mt-1.5' : ''}`}>
+                  <Crown size={16} />
+                </div>
+                <div>
+                  <span className="font-extrabold text-[11px] text-white leading-tight block">
+                    {isArabic ? pkg.titleAr : pkg.titleEn}
+                  </span>
+                  <span className="text-[10px] text-amber-300 font-black bg-amber-500/15 px-2 py-0.5 rounded-md mt-1 inline-block" dir="ltr">
+                    {pkg.tonPrice} TON
+                  </span>
+                </div>
+              </button>
+            ))}
           </div>
         </div>
 
@@ -622,6 +684,11 @@ export const Profile = () => {
       <ReferralHub 
         isOpen={showReferralModal} 
         onClose={() => setShowReferralModal(false)} 
+      />
+
+      <TonPaymentModal 
+        isOpen={showTonModal}
+        onClose={() => setShowTonModal(false)}
       />
     </div>
   );
