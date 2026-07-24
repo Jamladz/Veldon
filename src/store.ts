@@ -18,6 +18,8 @@ interface AppState {
   lastAdWatch: number | null;
   premiumUntil: number | null;
   completedEpisodes: string[];
+  clearFavorites: () => void;
+  clearHistory: () => void;
   setUser: (user: UserProfile | null) => void;
   setMovies: (movies: Movie[]) => void;
   toggleFavorite: (movieId: string) => void;
@@ -31,6 +33,7 @@ interface AppState {
   completeEpisode: (episodeId: string) => void;
   buyVipPass: (days: number, cost: number) => boolean;
   isVipActive: () => boolean;
+  getTotalCoinsEarned: () => number;
 }
 
 const STREAK_REWARDS = [50, 70, 100, 120, 150, 200, 300];
@@ -53,7 +56,9 @@ export const useAppStore = create<AppState>()(
       lastAdWatch: null,
       premiumUntil: null,
       completedEpisodes: [],
-      setUser: (user) => set({ user }),
+      clearFavorites: () => set({ favorites: [] }),
+  clearHistory: () => set({ history: {} }),
+  setUser: (user) => set({ user }),
       setMovies: (movies) => set({ movies }),
       toggleFavorite: (movieId) => set((state) => {
         const isFav = state.favorites.includes(movieId);
@@ -168,6 +173,12 @@ export const useAppStore = create<AppState>()(
       isVipActive: () => {
         const state = get();
         return Boolean(state.premiumUntil && state.premiumUntil > Date.now());
+      },
+      getTotalCoinsEarned: () => {
+        const state = get();
+        return state.transactions
+          .filter(t => t.type === 'earn')
+          .reduce((sum, t) => sum + t.amount, 0);
       }
     }),
     {
@@ -177,6 +188,7 @@ export const useAppStore = create<AppState>()(
         transactions: state.transactions,
         unlockedEpisodes: state.unlockedEpisodes,
         favorites: state.favorites,
+        history: state.history,
         streakDays: state.streakDays,
         lastDailyReward: state.lastDailyReward,
         lastAdWatch: state.lastAdWatch,

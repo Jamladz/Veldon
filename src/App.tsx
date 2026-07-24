@@ -56,6 +56,16 @@ export default function App() {
   const addCoins = useAppStore(s => s.addCoins);
 
   useEffect(() => {
+    // Disable copy on non-input elements
+    const preventCopy = (e: ClipboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) {
+        return;
+      }
+      e.preventDefault();
+    };
+    document.addEventListener('copy', preventCopy);
+
     // Set theme based on Telegram settings or force dark
     document.documentElement.classList.add('dark');
     
@@ -71,12 +81,20 @@ export default function App() {
       }
     }
     
-    signInAnonymously(auth).catch(console.error);
+    signInAnonymously(auth).catch((err) => {
+      console.warn("Auth anonymous signin warning:", err);
+      setIsAuthReady(true);
+    });
+
+    // Fallback timeout to guarantee app loads even if auth is delayed
+    const authTimeout = setTimeout(() => {
+      setIsAuthReady(true);
+    }, 1200);
 
     const unsubscribe = auth.onAuthStateChanged((user) => {
+      clearTimeout(authTimeout);
+      setIsAuthReady(true);
       if (user) {
-        setIsAuthReady(true);
-
         // Process potential referral deep link
         const currentId = getCurrentUserId(user.uid);
         const tgUser = getTelegramUser();
@@ -88,11 +106,15 @@ export default function App() {
             setReferralBonusToast(res.bonusCoins);
             setTimeout(() => setReferralBonusToast(null), 5000);
           }
-        });
+        }).catch(err => console.error("Referral process error:", err));
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      clearTimeout(authTimeout);
+      document.removeEventListener('copy', preventCopy);
+      unsubscribe();
+    };
   }, [addCoins]);
 
   if (!isAuthReady) {

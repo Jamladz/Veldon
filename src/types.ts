@@ -69,6 +69,8 @@ export interface ReferralMilestone {
 
 export interface WatchHistoryItem {
   movieId: string;
+  episodeId?: string;
+  episodeNumber?: number;
   lastWatchedMinute: number;
   percentage: number;
   updatedAt: number;

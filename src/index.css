@@ -16,6 +16,17 @@ html, body {
   padding: 0;
   overscroll-behavior-y: none;
   touch-action: manipulation;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+* {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 /* Safe area inset helpers */
