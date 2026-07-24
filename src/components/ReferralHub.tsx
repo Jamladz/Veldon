@@ -89,10 +89,12 @@ export const ReferralHub: React.FC<ReferralHubProps> = ({ isOpen, onClose }) => 
     setClaimedMilestones(updated);
     localStorage.setItem(`claimed_milestones_${userId}`, JSON.stringify(updated));
 
+    const currentCoins = useAppStore.getState().coins;
+
     alert(
       isArabic
-        ? `🎉 تهانينا! تمت مطالبة المكافأة بنجاح: +${bonusCoins} نقطة و +${vipDays} أيام VIP!`
-        : `🎉 Congratulations! Milestone claimed: +${bonusCoins} Coins and +${vipDays} Days VIP!`
+        ? `🎉 تهانينا! تمت مطالبة المكافأة بنجاح: +${bonusCoins} نقطة و +${vipDays} أيام VIP!\n💰 مجموع رصيد نقاطك الآن: ${currentCoins} نقطة.`
+        : `🎉 Congratulations! Milestone claimed: +${bonusCoins} Coins and +${vipDays} Days VIP!\n💰 Total Coins Balance: ${currentCoins} coins.`
     );
   };
 
