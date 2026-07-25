@@ -59,11 +59,9 @@ export const TonPaymentModal: React.FC<TonPaymentModalProps> = ({ isOpen, onClos
 
       const result = await tonConnectUI.sendTransaction(transaction);
       
-      // Grant VIP directly
+      // Grant Paid VIP (100% Ad-Free)
       const store = useAppStore.getState();
-      const currentExpiry = store.premiumUntil && store.premiumUntil > Date.now() ? store.premiumUntil : Date.now();
-      const additionalTime = selectedPkg.vipDays * 24 * 60 * 60 * 1000;
-      store.setPremiumUntil(currentExpiry + additionalTime);
+      store.activatePaidVip(selectedPkg.vipDays);
 
       setTxSuccess(result.boc ? result.boc.slice(0, 16) + '...' : 'Success');
     } catch (err: any) {

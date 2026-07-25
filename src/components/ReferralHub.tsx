@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Copy, Share2, Users, Gift, Crown, CheckCircle2, Award, ChevronRight, Sparkles, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Copy, Share2, Users, Gift, Crown, CheckCircle2, Award, ChevronRight, Sparkles, X, Trophy } from 'lucide-react';
 import { 
   getCurrentUserId, 
   getReferralLink, 
@@ -18,6 +19,7 @@ interface ReferralHubProps {
 }
 
 export const ReferralHub: React.FC<ReferralHubProps> = ({ isOpen, onClose }) => {
+  const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const isArabic = i18n.language === 'ar';
   const { coins, addCoins } = useAppStore();
@@ -130,6 +132,35 @@ export const ReferralHub: React.FC<ReferralHubProps> = ({ isOpen, onClose }) => 
 
         {/* Content Body */}
         <div className="flex-1 overflow-y-auto p-5 space-y-6">
+
+          {/* Weekly Contest Promo Button */}
+          <div 
+            onClick={() => {
+              onClose();
+              navigate('/weekly-contest');
+            }}
+            className="bg-gradient-to-r from-amber-950 via-yellow-900/90 to-[#181818] border border-amber-500/50 p-3.5 rounded-2xl flex items-center justify-between cursor-pointer hover:border-amber-400 active:scale-98 transition-all shadow-lg shadow-amber-500/10"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-tr from-amber-400 to-yellow-500 text-black rounded-xl flex items-center justify-center font-black shadow-md shrink-0">
+                <Trophy size={22} className="fill-black" />
+              </div>
+              <div>
+                <div className="flex items-center gap-1">
+                  <h3 className="text-xs font-black text-white">
+                    {isArabic ? 'المسابقة الأسبوعية للإحالات' : 'Weekly Referral Contest'}
+                  </h3>
+                  <span className="bg-yellow-500 text-black text-[9px] font-black px-1.5 py-0.2 rounded-md">
+                    {isArabic ? 'جديد' : 'NEW'}
+                  </span>
+                </div>
+                <p className="text-[11px] text-amber-200/80 font-medium mt-0.5">
+                  {isArabic ? 'اربح VIP مجاني من يوم إلى شهر كامل!' : 'Win free VIP from 1 day up to 1 full month!'}
+                </p>
+              </div>
+            </div>
+            <ChevronRight size={18} className={`text-amber-400 ${isArabic ? 'rotate-180' : ''}`} />
+          </div>
 
           {/* Stats Bar */}
           <div className="grid grid-cols-2 gap-3">
