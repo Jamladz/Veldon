@@ -11,8 +11,9 @@ declare global {
 }
 
 export const ADSGRAM_BLOCKS = {
-  EPISODE_REWARD: 'int-39490', // Adsgram Ad every 2 episodes after ep 6
+  EPISODE_REWARD: 'int-39490', // Adsgram Ad for episode unlock
   DAILY_STREAK: 'int-39489',   // Adsgram Ad for Daily Attendance reward
+  WATCH_AD: 'int-39490',       // Block ID for Watch Ad
 };
 
 export async function showAdsgramAd(blockId: string): Promise<boolean> {

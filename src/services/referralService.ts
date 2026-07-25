@@ -207,3 +207,70 @@ export async function syncUserData(userId: string, initialCoins: number) {
     return null;
   }
 }
+
+export async function getWeeklyLeaderboard(currentUserId: string) {
+  try {
+    const q = query(
+      collection(db, 'users'),
+      orderBy('referralsCount', 'desc'),
+      limit(20)
+    );
+    const snap = await getDocs(q);
+    const fetched: Array<{ id: string; name?: string; referralsCount?: number }> = [];
+    
+    snap.forEach((d) => {
+      const data = d.data();
+      fetched.push({
+        id: d.id,
+        name: data.name || 'مستخدم Drama',
+        referralsCount: data.referralsCount || 0
+      });
+    });
+
+    // Default mock competitors if real users are few
+    const defaultCompetitors = [
+      { id: 'c1', name: 'أحمد علي (Pro)', referralsCount: 42, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ahmad' },
+      { id: 'c2', name: 'سارة خالد 🎬', referralsCount: 35, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah' },
+      { id: 'c3', name: 'محمد القحطاني', referralsCount: 28, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mohamed' },
+      { id: 'c4', name: 'فاطمة الزهراء', referralsCount: 21, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Fatima' },
+      { id: 'c5', name: 'عمر VIP', referralsCount: 18, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Omar' },
+      { id: 'c6', name: 'نورة العتيبي', referralsCount: 15, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Noura' },
+      { id: 'c7', name: 'يوسف الهلالي', referralsCount: 12, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Youssef' },
+      { id: 'c8', name: 'خالد السينمائي', referralsCount: 9, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Khaled' },
+      { id: 'c9', name: 'مريم التونسي', referralsCount: 7, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Maryam' },
+      { id: 'c10', name: 'علي عبد الله', referralsCount: 5, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ali' },
+    ];
+
+    // Combine fetched users with defaults
+    let listMap = new Map<string, { id: string; name: string; referralsCount: number; avatar?: string; isCurrentUser?: boolean }>();
+
+    fetched.forEach((u) => {
+      listMap.set(u.id, {
+        id: u.id,
+        name: u.name || 'مستخدم',
+        referralsCount: u.referralsCount || 0,
+        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.id}`,
+        isCurrentUser: u.id === currentUserId
+      });
+    });
+
+    defaultCompetitors.forEach((c) => {
+      if (!listMap.has(c.id)) {
+        listMap.set(c.id, { ...c, isCurrentUser: c.id === currentUserId });
+      }
+    });
+
+    const combined = Array.from(listMap.values()).sort((a, b) => b.referralsCount - a.referralsCount);
+
+    // Assign ranks
+    const ranked = combined.map((item, idx) => ({
+      ...item,
+      rank: idx + 1
+    }));
+
+    return ranked;
+  } catch (error) {
+    console.error('Error fetching leaderboard:', error);
+    return [];
+  }
+}
