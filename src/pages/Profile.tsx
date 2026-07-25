@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Clock, Film, Tv, Flame, Gift, Settings, Crown, Share2, Wallet, User, Users, Sparkles, History, ShoppingBag, CheckCircle, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Clock, Film, Tv, Flame, Gift, Settings, Crown, Share2, Wallet, User, Users, Sparkles, History, ShoppingBag, CheckCircle, ArrowUpRight, ArrowDownRight, Trophy, ChevronRight, Coins } from 'lucide-react';
 import { useAppStore } from '../store';
 import { TonConnectButton, useTonConnectUI, useTonAddress } from '@tonconnect/ui-react';
 import { ReferralHub } from '../components/ReferralHub';
+import { PointsStoreModal } from '../components/PointsStoreModal';
 import { TonPaymentModal } from '../components/TonPaymentModal';
 import { TON_CONFIG } from '../config/tonConfig';
 import { showAdsgramAd, ADSGRAM_BLOCKS } from '../services/adsgramService';
+import { getCurrentUserId, getShareTelegramLink } from '../services/referralService';
 
 declare global {
   interface Window {
@@ -536,94 +538,11 @@ export const Profile = () => {
       </div>
 
       {/* VIP Shop Modal (Buy VIP with Coins) */}
-      {showVipShopModal && (
-        <div className="fixed inset-0 z-[999] bg-black/80 backdrop-blur-md flex items-end sm:items-center justify-center p-4">
-          <div className="bg-[#141414] border border-yellow-500/30 w-full max-w-md rounded-3xl p-6 relative flex flex-col gap-5 animate-in slide-in-from-bottom duration-300">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Crown size={22} className="text-yellow-400 fill-yellow-400" />
-                <h2 className="text-base font-extrabold text-white">
-                  {isArabic ? 'متجر VIP بالنقاط' : 'VIP Pass Shop'}
-                </h2>
-              </div>
-              <button 
-                onClick={() => setShowVipShopModal(false)}
-                className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/60"
-              >
-                ✕
-              </button>
-            </div>
-
-            <p className="text-xs text-white/70">
-              {isArabic ? 'استبدل النقاط التي جمعتها للحصول على اشتراك VIP ومشاهدة كل المسلسلات بدون إعلانات وبدون الحاجة لفتح الحلقات!' : 'Use your earned coins to unlock unlimited VIP access.'}
-            </p>
-
-            <div className="grid grid-cols-1 gap-3">
-              {/* 1 Day Plan */}
-              <div className="bg-gradient-to-r from-yellow-950/30 via-black to-zinc-900/60 border border-yellow-500/20 p-4 rounded-2xl flex items-center justify-between">
-                <div>
-                  <div className="font-black text-sm text-white">{isArabic ? 'اشتراك VIP - يوم واحد' : '1 Day VIP Pass'}</div>
-                  <div className="text-[11px] text-yellow-300/70 mt-0.5">{isArabic ? '24 ساعة مشاهدة غير محدودة' : '24h unlimited access'}</div>
-                </div>
-                <button 
-                  onClick={() => handleBuyVipWithCoins(1, 500)}
-                  className="px-4 py-2 bg-yellow-500/90 hover:bg-yellow-400 text-black font-black text-xs rounded-xl shadow-md active:scale-95 transition-all"
-                >
-                  500 {isArabic ? 'نقطة' : 'Coins'}
-                </button>
-              </div>
-
-              {/* 3 Days Plan */}
-              <div className="bg-gradient-to-r from-amber-950/50 via-black to-zinc-900/80 border border-amber-500/40 p-4 rounded-2xl flex items-center justify-between relative overflow-hidden">
-                <div className="absolute top-0 right-0 bg-red-600 text-white text-[8px] font-black px-2 py-0.5 rounded-bl-lg tracking-wider">
-                  {isArabic ? 'الأكثر طلباً' : 'POPULAR'}
-                </div>
-                <div>
-                  <div className="font-black text-sm text-white">{isArabic ? 'اشتراك VIP - 3 أيام' : '3 Days VIP Pass'}</div>
-                  <div className="text-[11px] text-amber-300/80 mt-0.5">{isArabic ? 'توفير 300 نقطة' : 'Save 300 coins'}</div>
-                </div>
-                <button 
-                  onClick={() => handleBuyVipWithCoins(3, 1200)}
-                  className="px-4 py-2 bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-black font-black text-xs rounded-xl shadow-md active:scale-95 transition-all"
-                >
-                  1,200 {isArabic ? 'نقطة' : 'Coins'}
-                </button>
-              </div>
-
-              {/* 7 Days Plan */}
-              <div className="bg-gradient-to-r from-purple-950/40 via-black to-zinc-900/80 border border-purple-500/30 p-4 rounded-2xl flex items-center justify-between">
-                <div>
-                  <div className="font-black text-sm text-white">{isArabic ? 'اشتراك VIP - 7 أيام' : '7 Days VIP Pass'}</div>
-                  <div className="text-[11px] text-purple-300/80 mt-0.5">{isArabic ? 'توفير 1,000 نقطة' : 'Save 1,000 coins'}</div>
-                </div>
-                <button 
-                  onClick={() => handleBuyVipWithCoins(7, 2500)}
-                  className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-black text-xs rounded-xl shadow-md active:scale-95 transition-all"
-                >
-                  2,500 {isArabic ? 'نقطة' : 'Coins'}
-                </button>
-              </div>
-
-              {/* 30 Days Plan */}
-              <div className="bg-gradient-to-r from-emerald-950/40 via-black to-zinc-900/90 border border-emerald-500/40 p-4 rounded-2xl flex items-center justify-between relative overflow-hidden">
-                <div className="absolute top-0 right-0 bg-emerald-500 text-black text-[8px] font-black px-2 py-0.5 rounded-bl-lg tracking-wider">
-                  {isArabic ? 'توفير ضخم' : 'MAX SAVINGS'}
-                </div>
-                <div>
-                  <div className="font-black text-sm text-white">{isArabic ? 'اشتراك VIP - 30 يوماً' : '30 Days VIP Pass'}</div>
-                  <div className="text-[11px] text-emerald-300/80 mt-0.5">{isArabic ? 'توفير 7,000 نقطة!' : 'Save 7,000 coins!'}</div>
-                </div>
-                <button 
-                  onClick={() => handleBuyVipWithCoins(30, 8000)}
-                  className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xs rounded-xl shadow-md active:scale-95 transition-all"
-                >
-                  8,000 {isArabic ? 'نقطة' : 'Coins'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <PointsStoreModal 
+        isOpen={showVipShopModal}
+        onClose={() => setShowVipShopModal(false)}
+        onOpenTonModal={() => setShowTonModal(true)}
+      />
 
       {/* Transaction History Modal */}
       {showTransactionsModal && (
