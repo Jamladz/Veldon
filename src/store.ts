@@ -17,6 +17,7 @@ interface AppState {
   lastDailyReward: number | null;
   lastAdWatch: number | null;
   premiumUntil: number | null;
+  vipType: 'paid' | 'points' | null;
   completedEpisodes: string[];
   clearFavorites: () => void;
   clearHistory: () => void;
@@ -29,10 +30,14 @@ interface AppState {
   unlockEpisode: (episodeId: string) => void;
   claimDailyReward: () => { success: boolean; reward: number; streak: number };
   claimAdReward: () => boolean;
-  setPremiumUntil: (timestamp: number) => void;
+  setPremiumUntil: (timestamp: number, type?: 'paid' | 'points') => void;
   completeEpisode: (episodeId: string) => void;
   buyVipPass: (days: number, cost: number) => boolean;
+  buyPointsVipPass: (days: number, cost: number) => boolean;
+  activatePaidVip: (days: number) => void;
   isVipActive: () => boolean;
+  isPaidVip: () => boolean;
+  isPointsVip: () => boolean;
   getTotalCoinsEarned: () => number;
 }
 
@@ -55,6 +60,7 @@ export const useAppStore = create<AppState>()(
       lastDailyReward: null,
       lastAdWatch: null,
       premiumUntil: null,
+      vipType: null,
       completedEpisodes: [],
       clearFavorites: () => set({ favorites: [] }),
   clearHistory: () => set({ history: {} }),
@@ -147,7 +153,7 @@ export const useAppStore = create<AppState>()(
         }
         return false;
       },
-      setPremiumUntil: (timestamp: number) => set({ premiumUntil: timestamp }),
+      setPremiumUntil: (timestamp: number, type: 'paid' | 'points' = 'paid') => set({ premiumUntil: timestamp, vipType: type }),
       completeEpisode: (episodeId: string) => {
         set((state) => {
           if (state.completedEpisodes.includes(episodeId)) {
@@ -159,20 +165,37 @@ export const useAppStore = create<AppState>()(
           };
         });
       },
-      buyVipPass: (days: number, cost: number) => {
+      buyPointsVipPass: (days: number, cost: number) => {
         const state = get();
-        const success = get().spendCoins(cost, `اشتراك VIP لمدة ${days} يوم`);
+        const success = get().spendCoins(cost, `اشتراك VIP بالنقاط لمدة ${days} يوم`);
         if (success) {
           const currentExpiry = state.premiumUntil && state.premiumUntil > Date.now() ? state.premiumUntil : Date.now();
           const additionalTime = days * 24 * 60 * 60 * 1000;
-          set({ premiumUntil: currentExpiry + additionalTime });
+          set({ premiumUntil: currentExpiry + additionalTime, vipType: 'points' });
           return true;
         }
         return false;
       },
+      buyVipPass: (days: number, cost: number) => {
+        return get().buyPointsVipPass(days, cost);
+      },
+      activatePaidVip: (days: number) => {
+        const state = get();
+        const currentExpiry = state.premiumUntil && state.premiumUntil > Date.now() ? state.premiumUntil : Date.now();
+        const additionalTime = days * 24 * 60 * 60 * 1000;
+        set({ premiumUntil: currentExpiry + additionalTime, vipType: 'paid' });
+      },
       isVipActive: () => {
         const state = get();
         return Boolean(state.premiumUntil && state.premiumUntil > Date.now());
+      },
+      isPaidVip: () => {
+        const state = get();
+        return Boolean(state.premiumUntil && state.premiumUntil > Date.now() && state.vipType === 'paid');
+      },
+      isPointsVip: () => {
+        const state = get();
+        return Boolean(state.premiumUntil && state.premiumUntil > Date.now() && state.vipType === 'points');
       },
       getTotalCoinsEarned: () => {
         const state = get();
@@ -193,6 +216,7 @@ export const useAppStore = create<AppState>()(
         lastDailyReward: state.lastDailyReward,
         lastAdWatch: state.lastAdWatch,
         premiumUntil: state.premiumUntil,
+        vipType: state.vipType,
         completedEpisodes: state.completedEpisodes
       }),
     }

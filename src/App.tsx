@@ -19,6 +19,7 @@ import { MovieDetails } from './pages/MovieDetails';
 import { Watch } from './pages/Watch';
 import { Admin } from './pages/Admin';
 import { ForYou } from './pages/ForYou';
+import { WeeklyContest } from './pages/WeeklyContest';
 
 // Initialization
 import './i18n';
@@ -40,6 +41,8 @@ const AnimatedRoutes = () => {
           <Route path="/favorites" element={<Favorites />} />
           <Route path="/history" element={<History />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/weekly-contest" element={<WeeklyContest />} />
+          <Route path="/contest" element={<WeeklyContest />} />
           <Route path="/movie/:id" element={<MovieDetails />} />
           <Route path="/watch/:id" element={<Watch />} />
           <Route path="/admin" element={<Admin />} />

@@ -83,3 +83,12 @@ export interface CoinTransaction {
   reason: string;
   timestamp: number;
 }
+
+export interface ContestLeader {
+  id: string;
+  name: string;
+  referralsCount: number;
+  rank?: number;
+  avatar?: string;
+  isCurrentUser?: boolean;
+}
