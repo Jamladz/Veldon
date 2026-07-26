@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { 
   TonConnectButton, 
@@ -27,14 +28,64 @@ export const TonPaymentModal: React.FC<TonPaymentModalProps> = ({ isOpen, onClos
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [txSuccess, setTxSuccess] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [pendingAutoPay, setPendingAutoPay] = useState<boolean>(false);
+
+  // Auto trigger payment after user connects their wallet via TonConnect modal
+  React.useEffect(() => {
+    if (wallet && pendingAutoPay) {
+      setPendingAutoPay(false);
+      // Small timeout to allow TonConnect UI state to solidify
+      setTimeout(() => {
+        handlePayWithTon();
+      }, 300);
+    }
+  }, [wallet, pendingAutoPay]);
 
   if (!isOpen) return null;
 
   const selectedPkg = TON_CONFIG.PACKAGES.find(p => p.id === selectedPkgId) || TON_CONFIG.PACKAGES[0];
 
+  const openConnectModal = async () => {
+    setErrorMsg(
+      isArabic 
+        ? '💡 جاري فتح نافذة الربط... اختر محفظتك (Tonkeeper أو Telegram Wallet)' 
+        : '💡 Opening wallet connection... select your wallet (Tonkeeper or Telegram Wallet)'
+    );
+
+    // 1. Try SDK programmatic methods
+    try {
+      if (typeof (tonConnectUI as any)?.openModal === 'function') {
+        await (tonConnectUI as any).openModal();
+        return;
+      }
+      if (typeof (tonConnectUI as any)?.modal?.open === 'function') {
+        await (tonConnectUI as any).modal.open();
+        return;
+      }
+      if (typeof (tonConnectUI as any)?.connectWallet === 'function') {
+        await (tonConnectUI as any).connectWallet();
+        return;
+      }
+    } catch (err) {
+      console.warn('TonConnect SDK openModal error:', err);
+    }
+
+    // 2. Fallback: Programmatically click the TonConnect button in the DOM
+    try {
+      const tcBtn = document.querySelector('.ton-connect-btn-wrapper button, tc-root button, [data-tc-button="true"]') as HTMLButtonElement;
+      if (tcBtn) {
+        tcBtn.click();
+        return;
+      }
+    } catch (err) {
+      console.warn('DOM button click fallback error:', err);
+    }
+  };
+
   const handlePayWithTon = async () => {
     if (!wallet) {
-      setErrorMsg(isArabic ? 'يرجى ربط محفظة TON أولاً للبدء' : 'Please connect your TON wallet first');
+      setPendingAutoPay(true);
+      await openConnectModal();
       return;
     }
 
@@ -52,7 +103,6 @@ export const TonPaymentModal: React.FC<TonPaymentModalProps> = ({ isOpen, onClos
           {
             address: TON_CONFIG.RECEIVER_ADDRESS,
             amount: amountInNanotons,
-            payload: undefined
           }
         ]
       };
@@ -66,20 +116,20 @@ export const TonPaymentModal: React.FC<TonPaymentModalProps> = ({ isOpen, onClos
       setTxSuccess(result.boc ? result.boc.slice(0, 16) + '...' : 'Success');
     } catch (err: any) {
       console.error('TON Transaction Error:', err);
-      if (err?.message?.includes('User rejects')) {
-        setErrorMsg(isArabic ? 'تم إلغاء المعاملة بواسطة المستخدم' : 'Transaction was cancelled');
+      if (err?.message?.includes('User rejects') || err?.message?.includes('Reject')) {
+        setErrorMsg(isArabic ? 'تم إلغاء المعاملة من قبل المستخدم' : 'Transaction was cancelled by user');
       } else {
-        setErrorMsg(isArabic ? 'فشلت عملية الدفع. يرجى المحاولة مرة أخرى' : 'Payment failed. Please try again.');
+        setErrorMsg(isArabic ? 'فشلت المعاملة أو تمت إلغاؤها. حاول مرة أخرى' : 'Transaction failed or cancelled. Try again');
       }
     } finally {
       setIsProcessing(false);
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-[110] bg-black/90 backdrop-blur-xl flex items-end sm:items-center justify-center p-0 sm:p-4">
+  return createPortal(
+    <div className="fixed inset-0 z-[500] bg-black/90 backdrop-blur-xl flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-hidden">
       <div 
-        className="bg-[#121212] border border-amber-500/30 rounded-t-3xl sm:rounded-3xl w-full max-w-md max-h-[92vh] flex flex-col overflow-hidden shadow-[0_0_50px_rgba(245,158,11,0.2)] animate-in slide-in-from-bottom duration-300"
+        className="bg-[#121212] border border-amber-500/30 rounded-t-3xl sm:rounded-3xl w-full max-w-md max-h-[90vh] sm:max-h-[85vh] flex flex-col overflow-hidden shadow-[0_0_50px_rgba(245,158,11,0.2)] animate-in slide-in-from-bottom duration-300 my-0 sm:my-auto"
         dir={isArabic ? 'rtl' : 'ltr'}
       >
         {/* Header */}
@@ -110,7 +160,14 @@ export const TonPaymentModal: React.FC<TonPaymentModalProps> = ({ isOpen, onClos
         <div className="flex-1 overflow-y-auto p-5 space-y-5 hide-scrollbar">
 
           {/* TonConnect Wallet Connection Status */}
-          <div className="bg-[#1A1A1A] border border-white/10 p-4 rounded-2xl flex items-center justify-between">
+          <div 
+            onClick={() => {
+              if (!wallet) openConnectModal();
+            }}
+            className={`bg-[#1A1A1A] border border-white/10 p-4 rounded-2xl flex items-center justify-between transition-all ${
+              !wallet ? 'cursor-pointer hover:border-[#0098EA]/50 active:scale-[0.99]' : ''
+            }`}
+          >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-[#0098EA]/10 border border-[#0098EA]/30 flex items-center justify-center text-[#0098EA]">
                 <Wallet size={20} />
@@ -119,7 +176,7 @@ export const TonPaymentModal: React.FC<TonPaymentModalProps> = ({ isOpen, onClos
                 <p className="text-xs font-bold text-white">
                   {wallet 
                     ? (isArabic ? 'المحفظة متصلة' : 'Wallet Connected') 
-                    : (isArabic ? 'ربط محفظة TON' : 'Connect TON Wallet')}
+                    : (isArabic ? 'ربط محفظة TON (اضغط هنا للربط)' : 'Connect TON Wallet (Tap to connect)')}
                 </p>
                 <p className="text-[10px] text-white/50 font-mono">
                   {userAddress ? `${userAddress.slice(0, 6)}...${userAddress.slice(-4)}` : (isArabic ? 'Tonkeeper / Telegram Wallet' : 'Telegram Wallet')}
@@ -128,7 +185,7 @@ export const TonPaymentModal: React.FC<TonPaymentModalProps> = ({ isOpen, onClos
             </div>
 
             {/* Native TonConnect Button */}
-            <div className="ton-connect-btn-wrapper">
+            <div className="ton-connect-btn-wrapper" onClick={(e) => e.stopPropagation()}>
               <TonConnectButton />
             </div>
           </div>
@@ -229,8 +286,12 @@ export const TonPaymentModal: React.FC<TonPaymentModalProps> = ({ isOpen, onClos
               <>
                 <span>
                   {isArabic 
-                    ? `تفعيل اشتراك VIP بـ (${selectedPkg.tonPrice} TON)` 
-                    : `Activate VIP Pass (${selectedPkg.tonPrice} TON)`}
+                    ? (wallet 
+                        ? `تفعيل اشتراك VIP بـ (${selectedPkg.tonPrice} TON)` 
+                        : `ربط المحفظة وتفعيل الاشتراك (${selectedPkg.tonPrice} TON)`)
+                    : (wallet 
+                        ? `Activate VIP Pass (${selectedPkg.tonPrice} TON)` 
+                        : `Connect Wallet & Activate (${selectedPkg.tonPrice} TON)`)}
                 </span>
                 <ArrowRight size={18} className={isArabic ? 'rotate-180' : ''} />
               </>
@@ -239,6 +300,7 @@ export const TonPaymentModal: React.FC<TonPaymentModalProps> = ({ isOpen, onClos
         </div>
 
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

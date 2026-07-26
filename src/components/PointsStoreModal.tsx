@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import { X, Crown, Sparkles, Coins, CheckCircle2, Zap, Gift, ShieldAlert, ArrowRight } from 'lucide-react';
+import { X, Crown, Sparkles, Coins, CheckCircle2, Zap, Gift, ArrowRight, Users, Tv, CalendarCheck } from 'lucide-react';
 import { useAppStore } from '../store';
+import { ReferralHub } from './ReferralHub';
+import { showAdsgramAd, ADSGRAM_BLOCKS } from '../services/adsgramService';
 
 interface PointsStoreModalProps {
   isOpen: boolean;
@@ -56,21 +59,28 @@ export const PointsStoreModal: React.FC<PointsStoreModalProps> = ({ isOpen, onCl
   const { i18n } = useTranslation();
   const isArabic = i18n.language === 'ar';
 
-  const { coins, buyPointsVipPass, isVipActive, isPaidVip, isPointsVip, premiumUntil } = useAppStore();
+  const { 
+    coins, buyPointsVipPass, isVipActive, isPaidVip, 
+    premiumUntil, claimDailyReward, claimAdReward, getTotalCoinsEarned 
+  } = useAppStore();
+
   const [selectedPkgId, setSelectedPkgId] = useState<string>('points-7days');
   const [msg, setMsg] = useState<{ text: string; success: boolean } | null>(null);
+  const [showReferralHub, setShowReferralHub] = useState(false);
+  const [isAdLoading, setIsAdLoading] = useState(false);
 
   if (!isOpen) return null;
 
   const selectedPkg = POINTS_VIP_PACKAGES.find(p => p.id === selectedPkgId) || POINTS_VIP_PACKAGES[0];
+  const totalEarned = getTotalCoinsEarned();
 
   const handleRedeem = () => {
     setMsg(null);
     if (coins < selectedPkg.cost) {
       setMsg({
         text: isArabic 
-          ? `رصيد نقاطك الحالي (${coins}) لا يكفي. تحتاج إلى ${selectedPkg.cost} نقطة. دع الأصدقاء لكسب المزيد من النقاط!`
-          : `Insufficient balance (${coins} coins). You need ${selectedPkg.cost} coins. Invite friends to earn more!`,
+          ? `رصيد نقاطك الحالي (${coins.toLocaleString()}) غير كافٍ. تحتاج إلى ${selectedPkg.cost.toLocaleString()} نقطة. يمكنك كسب المزيد أدناه!`
+          : `Insufficient balance (${coins.toLocaleString()} coins). You need ${selectedPkg.cost.toLocaleString()} coins. Earn more below!`,
         success: false
       });
       return;
@@ -80,7 +90,7 @@ export const PointsStoreModal: React.FC<PointsStoreModalProps> = ({ isOpen, onCl
     if (success) {
       setMsg({
         text: isArabic 
-          ? `🎉 تم تفعيل اشتراك VIP بالنقاط لمدة ${selectedPkg.days} يوم بنجاح! ستشاهد الآن إعلان واحد فقط كل 6 فيديوهات.`
+          ? `🎉 تم تفعيل اشتراك VIP بالنقاط لمدة ${selectedPkg.days} يوم بنجاح! ستشاهد الآن إعلان 1 فقط كل 6 فيديوهات.`
           : `🎉 Successfully activated ${selectedPkg.days}-day VIP Pass! You will now see only 1 ad every 6 videos.`,
         success: true
       });
@@ -92,12 +102,60 @@ export const PointsStoreModal: React.FC<PointsStoreModalProps> = ({ isOpen, onCl
     }
   };
 
+  const handleClaimDaily = () => {
+    setMsg(null);
+    const res = claimDailyReward();
+    if (res.success) {
+      setMsg({
+        text: isArabic 
+          ? `🎉 حصلت على +${res.reward} نقطة! (سلسلة تسجيل الدخول: اليوم ${res.streak})`
+          : `🎉 You earned +${res.reward} coins! (Streak Day ${res.streak})`,
+        success: true
+      });
+    } else {
+      setMsg({
+        text: isArabic 
+          ? 'لقد استلمت مكافأة تسجيل الدخول اليومية بالفعل. عد غداً لمكافأة أكبر!'
+          : 'Already claimed today\'s reward. Come back tomorrow!',
+        success: false
+      });
+    }
+  };
+
+  const handleWatchAdReward = async () => {
+    setMsg(null);
+    setIsAdLoading(true);
+    const success = await showAdsgramAd(ADSGRAM_BLOCKS.WATCH_AD);
+    setIsAdLoading(false);
+
+    if (success) {
+      claimAdReward();
+      setMsg({
+        text: isArabic ? '🎉 تم إضافة +30 نقطة إلى رصيدك الشامل لمشاهدة الإعلان!' : '🎉 Added +30 coins for watching ad!',
+        success: true
+      });
+    } else {
+      const adSuccess = claimAdReward();
+      if (adSuccess) {
+        setMsg({
+          text: isArabic ? '🎉 تم إضافة +30 نقطة إلى رصيدك الشامل!' : '🎉 Added +30 coins to your balance!',
+          success: true
+        });
+      } else {
+        setMsg({
+          text: isArabic ? 'يرجى الانتظار بضع دقائق قبل مشاهدة إعلان جديد' : 'Please wait a few minutes before watching another ad',
+          success: false
+        });
+      }
+    }
+  };
+
   const formattedExpiry = premiumUntil ? new Date(premiumUntil).toLocaleDateString(isArabic ? 'ar-EG' : 'en-US') : null;
 
-  return (
-    <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
+  return createPortal(
+    <div className="fixed inset-0 z-[500] bg-black/85 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-hidden">
       <div 
-        className="bg-[#12110F] border border-amber-500/40 rounded-t-3xl sm:rounded-3xl w-full max-w-lg max-h-[92vh] flex flex-col overflow-hidden shadow-[0_0_50px_rgba(245,158,11,0.25)] animate-in slide-in-from-bottom duration-300"
+        className="bg-[#12110F] border border-amber-500/40 rounded-t-3xl sm:rounded-3xl w-full max-w-lg max-h-[90vh] sm:max-h-[85vh] flex flex-col overflow-hidden shadow-[0_0_60px_rgba(245,158,11,0.25)] animate-in slide-in-from-bottom duration-300 my-0 sm:my-auto"
         dir={isArabic ? 'rtl' : 'ltr'}
       >
         {/* Header */}
@@ -128,26 +186,89 @@ export const PointsStoreModal: React.FC<PointsStoreModalProps> = ({ isOpen, onCl
         <div className="flex-1 overflow-y-auto p-5 space-y-5 hide-scrollbar">
 
           {/* Current Points Balance Box */}
-          <div className="bg-gradient-to-r from-amber-950/40 via-yellow-950/20 to-[#1A1815] border border-amber-500/30 p-4 rounded-2xl flex items-center justify-between shadow-lg">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-500 to-yellow-400 flex items-center justify-center text-black font-black shadow-md">
-                <Coins size={22} />
-              </div>
-              <div>
-                <p className="text-[11px] font-bold text-amber-300/80 uppercase">
-                  {isArabic ? 'مجموع رصيد نقاطك الشامل' : 'Total Points Balance'}
-                </p>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-2xl font-black text-white" dir="ltr">{coins.toLocaleString()}</span>
-                  <span className="text-xs font-black text-yellow-400">{isArabic ? 'نقطة' : 'coins'}</span>
+          <div className="bg-gradient-to-r from-amber-950/60 via-yellow-950/30 to-[#1A1815] border border-amber-500/40 p-4.5 rounded-2xl flex flex-col gap-3 shadow-xl relative overflow-hidden">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 via-yellow-400 to-amber-600 flex items-center justify-center text-black font-black shadow-lg shadow-amber-500/20">
+                  <Coins size={26} className="fill-black" />
+                </div>
+                <div>
+                  <p className="text-[11px] font-bold text-amber-300/80 uppercase tracking-wider">
+                    {isArabic ? 'مجموع النقاط المتاحة' : 'Total Combined Balance'}
+                  </p>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-3xl font-black text-yellow-400 font-mono" dir="ltr">{coins.toLocaleString()}</span>
+                    <span className="text-xs font-black text-amber-200">{isArabic ? 'نقطة' : 'coins'}</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="text-right">
-              <span className="inline-block text-[10px] font-bold bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-full border border-amber-500/30">
-                {isArabic ? 'جاهز للاستخدام' : 'Ready to use'}
-              </span>
+              <div className="text-right flex flex-col items-end">
+                <span className="inline-block text-[10px] font-bold bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full border border-emerald-500/30">
+                  {isArabic ? 'جاهز للاستخدام' : 'Active & Ready'}
+                </span>
+                <span className="text-[10px] text-amber-200/60 mt-1 font-medium">
+                  {isArabic ? `إجمالي كسبك: ${totalEarned.toLocaleString()}` : `Total Earned: ${totalEarned.toLocaleString()}`}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Earn Options Section */}
+          <div>
+            <h3 className="text-xs font-black uppercase text-amber-400 tracking-wider mb-2.5 flex items-center justify-between">
+              <span>{isArabic ? '⚡ كسب المزيد من النقاط المجانية:' : '⚡ Earn More Free Points:'}</span>
+            </h3>
+
+            <div className="grid grid-cols-3 gap-2">
+              {/* 1. Invite Friends */}
+              <button 
+                onClick={() => setShowReferralHub(true)}
+                className="bg-gradient-to-b from-amber-950/40 to-[#1A1815] border border-amber-500/30 hover:border-amber-400 p-3 rounded-2xl flex flex-col items-center text-center gap-1.5 active:scale-95 transition-all group"
+              >
+                <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-black transition-colors">
+                  <Users size={18} />
+                </div>
+                <span className="text-[11px] font-black text-white leading-tight">
+                  {isArabic ? 'دعوة صديق' : 'Invite Friend'}
+                </span>
+                <span className="text-[10px] font-bold text-yellow-400 bg-yellow-500/10 px-1.5 py-0.5 rounded-md">
+                  +250 {isArabic ? 'نقطة' : 'pts'}
+                </span>
+              </button>
+
+              {/* 2. Watch Ad */}
+              <button 
+                onClick={handleWatchAdReward}
+                disabled={isAdLoading}
+                className="bg-gradient-to-b from-red-950/40 to-[#1A1815] border border-red-500/30 hover:border-red-400 p-3 rounded-2xl flex flex-col items-center text-center gap-1.5 active:scale-95 transition-all group disabled:opacity-50"
+              >
+                <div className="w-8 h-8 rounded-xl bg-red-500/20 text-red-400 flex items-center justify-center group-hover:bg-red-500 group-hover:text-white transition-colors">
+                  <Tv size={18} />
+                </div>
+                <span className="text-[11px] font-black text-white leading-tight">
+                  {isAdLoading ? (isArabic ? 'تحميل...' : 'Loading...') : (isArabic ? 'مشاهدة إعلان' : 'Watch Ad')}
+                </span>
+                <span className="text-[10px] font-bold text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded-md">
+                  +30 {isArabic ? 'نقطة' : 'pts'}
+                </span>
+              </button>
+
+              {/* 3. Daily Check-in */}
+              <button 
+                onClick={handleClaimDaily}
+                className="bg-gradient-to-b from-emerald-950/40 to-[#1A1815] border border-emerald-500/30 hover:border-emerald-400 p-3 rounded-2xl flex flex-col items-center text-center gap-1.5 active:scale-95 transition-all group"
+              >
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-black transition-colors">
+                  <CalendarCheck size={18} />
+                </div>
+                <span className="text-[11px] font-black text-white leading-tight">
+                  {isArabic ? 'مكافأة يومية' : 'Daily Reward'}
+                </span>
+                <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-md">
+                  +50-300 {isArabic ? 'نقطة' : 'pts'}
+                </span>
+              </button>
             </div>
           </div>
 
@@ -313,6 +434,13 @@ export const PointsStoreModal: React.FC<PointsStoreModalProps> = ({ isOpen, onCl
         </div>
 
       </div>
-    </div>
+
+      {/* Referral Hub Submodal */}
+      <ReferralHub 
+        isOpen={showReferralHub}
+        onClose={() => setShowReferralHub(false)}
+      />
+    </div>,
+    document.body
   );
 };

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Copy, Share2, Users, Gift, Crown, CheckCircle2, Award, ChevronRight, Sparkles, X, Trophy } from 'lucide-react';
@@ -100,10 +101,10 @@ export const ReferralHub: React.FC<ReferralHubProps> = ({ isOpen, onClose }) => 
     );
   };
 
-  return (
-    <div className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
+  return createPortal(
+    <div className="fixed inset-0 z-[500] bg-black/85 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-hidden">
       <div 
-        className="bg-[#111111] border border-white/10 rounded-t-3xl sm:rounded-3xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden shadow-2xl animate-in slide-in-from-bottom duration-300"
+        className="bg-[#111111] border border-white/10 rounded-t-3xl sm:rounded-3xl w-full max-w-lg max-h-[90vh] sm:max-h-[85vh] flex flex-col overflow-hidden shadow-2xl animate-in slide-in-from-bottom duration-300 my-0 sm:my-auto"
         dir={isArabic ? 'rtl' : 'ltr'}
       >
         {/* Header */}
@@ -350,6 +351,7 @@ export const ReferralHub: React.FC<ReferralHubProps> = ({ isOpen, onClose }) => 
 
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
