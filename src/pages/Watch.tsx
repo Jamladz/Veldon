@@ -7,6 +7,7 @@ import { ReelPlayer } from '../components/ReelPlayer';
 import { ReferralHub } from '../components/ReferralHub';
 import { TonPaymentModal } from '../components/TonPaymentModal';
 import { PointsStoreModal } from '../components/PointsStoreModal';
+import { TopPointsBadge } from '../components/TopPointsBadge';
 import { showAdsgramAd, ADSGRAM_BLOCKS } from '../services/adsgramService';
 
 export const Watch = () => {
@@ -235,45 +236,38 @@ export const Watch = () => {
       dir={isArabic ? 'rtl' : 'ltr'}
     >
       {/* Top Header overlay */}
-      <div className={`absolute top-0 left-0 right-0 p-4 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] flex items-center justify-between z-40 bg-gradient-to-b from-black/90 via-black/40 to-transparent transition-all duration-500 ${
+      <div className={`absolute top-0 left-0 right-0 p-2 sm:p-4 pt-[calc(0.5rem+env(safe-area-inset-top,0px))] flex items-center justify-between gap-1.5 z-40 bg-gradient-to-b from-black/90 via-black/50 to-transparent transition-all duration-500 max-w-full overflow-hidden ${
         areControlsVisible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
       }`}>
-        <div className="flex items-center gap-2 pointer-events-auto">
+        <div className="flex items-center gap-1.5 pointer-events-auto min-w-0 shrink">
           <button 
             onClick={() => navigate(-1)} 
-            className="w-10 h-10 bg-black/50 hover:bg-black/80 rounded-full flex items-center justify-center text-white shadow-lg border border-white/10 active:scale-95 transition-transform"
+            className="w-8 h-8 sm:w-10 sm:h-10 bg-black/50 hover:bg-black/80 rounded-full flex items-center justify-center text-white shadow-lg border border-white/10 active:scale-95 transition-transform shrink-0"
           >
-            <ArrowLeft size={22} className={isArabic ? 'rotate-180' : ''} />
+            <ArrowLeft size={18} className={isArabic ? 'rotate-180' : ''} />
           </button>
           
           <button 
             onClick={() => setShowEpisodeDrawer(true)}
-            className="flex items-center gap-2 px-3 py-1.5 bg-black/50 hover:bg-black/80 rounded-full text-white font-bold text-xs border border-white/15 backdrop-blur-md active:scale-95 transition-transform"
+            className="flex items-center gap-1.5 px-2.5 py-1 bg-black/50 hover:bg-black/80 rounded-full text-white font-bold text-[11px] sm:text-xs border border-white/15 backdrop-blur-md active:scale-95 transition-transform shrink-0"
           >
-            <Layers size={14} className="text-red-500" />
-            <span>{isArabic ? `الحلقة ${currentEp?.episodeNumber || 1}` : `Ep ${currentEp?.episodeNumber || 1}`}</span>
+            <Layers size={13} className="text-red-500" />
+            <span>{isArabic ? `ح ${currentEp?.episodeNumber || 1}` : `Ep ${currentEp?.episodeNumber || 1}`}</span>
             <span className="text-white/40">/ {episodes.length}</span>
           </button>
         </div>
 
-        {/* Right Header Buttons: TON Payment & Referral */}
-        <div className="flex items-center gap-2 pointer-events-auto">
+        {/* Right Header Buttons: TopPointsBadge & TON Payment */}
+        <div className="flex items-center gap-1.5 pointer-events-auto shrink-0">
+          <TopPointsBadge />
+
           {/* TON Payment Button */}
           <button 
             onClick={() => setShowTonModal(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-[#0098EA] to-blue-600 rounded-full text-white font-extrabold text-xs shadow-lg shadow-[#0098EA]/30 border border-[#0098EA]/40 active:scale-95 transition-transform"
+            className="flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-[#0098EA] to-blue-600 rounded-xl text-white font-black text-[11px] sm:text-xs shadow-md shadow-[#0098EA]/30 border border-[#0098EA]/40 active:scale-95 transition-transform shrink-0 whitespace-nowrap"
           >
-            <Zap size={14} className="text-yellow-300 animate-pulse" />
-            <span>{isArabic ? 'عملة TON' : 'TON Pay'}</span>
-          </button>
-
-          {/* Earn Coins / Refer Button */}
-          <button 
-            onClick={() => setShowReferralModal(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-amber-600 to-yellow-500 rounded-full text-white font-extrabold text-xs shadow-lg shadow-amber-500/20 border border-yellow-400/30 active:scale-95 transition-transform"
-          >
-            <Gift size={14} className="animate-bounce" />
-            <span>+250</span>
+            <Zap size={12} className="text-yellow-300 animate-pulse" />
+            <span>{isArabic ? 'TON' : 'TON'}</span>
           </button>
         </div>
       </div>
@@ -476,7 +470,7 @@ export const Watch = () => {
 
             <div className="grid grid-cols-4 gap-2.5 overflow-y-auto pr-1 pb-4">
               {episodes.map((ep) => {
-                const isLocked = !isVip && ep.episodeNumber > 6 && !unlockedEpisodes.includes(ep.id);
+                const isLocked = !isVipActive() && ep.episodeNumber > 6 && !unlockedEpisodes.includes(ep.id);
                 const isSelected = activeEpisodeId === ep.id;
 
                 return (

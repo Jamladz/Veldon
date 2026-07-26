@@ -6,6 +6,7 @@ import { useAppStore } from '../store';
 import { TonConnectButton, useTonConnectUI, useTonAddress } from '@tonconnect/ui-react';
 import { ReferralHub } from '../components/ReferralHub';
 import { PointsStoreModal } from '../components/PointsStoreModal';
+import { TopPointsBadge } from '../components/TopPointsBadge';
 import { TonPaymentModal } from '../components/TonPaymentModal';
 import { TON_CONFIG } from '../config/tonConfig';
 import { showAdsgramAd, ADSGRAM_BLOCKS } from '../services/adsgramService';
@@ -46,6 +47,7 @@ export const Profile = () => {
   const [showVipShopModal, setShowVipShopModal] = useState(false);
   const [showTonModal, setShowTonModal] = useState(false);
   const [isClaimingDaily, setIsClaimingDaily] = useState(false);
+  const [isWatchingAd, setIsWatchingAd] = useState(false);
   const userAddress = useTonAddress();
   const [tonConnectUI] = useTonConnectUI();
   
@@ -78,6 +80,31 @@ export const Profile = () => {
       console.error('Error claiming daily reward with ad:', err);
     } finally {
       setIsClaimingDaily(false);
+    }
+  };
+
+  const handleWatchAd = async () => {
+    setIsWatchingAd(true);
+    try {
+      // Trigger Adsgram Ad block int-39490 for Watch Ad reward
+      const success = await showAdsgramAd(ADSGRAM_BLOCKS.WATCH_AD);
+      if (success) {
+        if (claimAdReward()) {
+          const newBalance = coins + 30;
+          const newEarned = totalCoinsEarned + 30;
+          alert(
+            isArabic 
+              ? `🎉 شكراً لمشاهدتك الإعلان! تمت إضافة +30 نقطة لرصيدك!\n💰 مجموع رصيد نقاطك الحالي: ${newBalance} نقطة\n🏆 إجمالي النقاط المكتسبة كلياً: ${newEarned} نقطة` 
+              : `🎉 Thanks for watching! +30 Coins added!\n💰 Current Balance: ${newBalance} coins\n🏆 Total Earned: ${newEarned} coins`
+          );
+        } else {
+          alert(isArabic ? 'الرجاء الانتظار 3 دقائق قبل مشاهدة إعلان آخر.' : 'Please wait 3 minutes before watching another ad.');
+        }
+      }
+    } catch (err) {
+      console.error('Watch ad error:', err);
+    } finally {
+      setIsWatchingAd(false);
     }
   };
 
@@ -168,14 +195,7 @@ export const Profile = () => {
         {/* Top Control Bar */}
         <div className="flex items-center justify-between mb-5 relative z-10">
           <div className="flex items-center gap-2">
-            <div 
-              onClick={() => setShowVipShopModal(true)}
-              className="flex items-center gap-2 bg-gradient-to-r from-amber-500/20 via-yellow-500/20 to-amber-600/10 px-3.5 py-1.5 rounded-full border border-amber-500/30 cursor-pointer active:scale-95 transition-all shadow-lg shadow-amber-500/5"
-            >
-              <Gift size={15} className="text-yellow-400 animate-bounce" />
-              <span className="text-yellow-300 font-extrabold text-sm tracking-wide" dir="ltr">{user.coins}</span>
-              <span className="text-[10px] text-yellow-400/80 font-bold">{isArabic ? 'نقطة' : 'coins'}</span>
-            </div>
+            <TopPointsBadge />
 
             <button 
               onClick={() => setShowTonModal(true)}
@@ -437,26 +457,19 @@ export const Profile = () => {
             </button>
 
             <button 
-              onClick={() => {
-                if (claimAdReward()) {
-                  const newBalance = coins + 30;
-                  const newEarned = totalCoinsEarned + 30;
-                  alert(
-                    isArabic 
-                      ? `🎉 شكراً لمشاهدتك! حصلت على +30 نقطة!\n💰 مجموع رصيد نقاطك الحالي: ${newBalance} نقطة\n🏆 إجمالي النقاط المكتسبة كلياً: ${newEarned} نقطة` 
-                      : `🎉 Thanks for watching! +30 Coins\n💰 Current Balance: ${newBalance} coins\n🏆 Total Earned: ${newEarned} coins`
-                  );
-                } else {
-                  alert(isArabic ? 'الرجاء الانتظار 3 دقائق قبل مشاهدة إعلان آخر.' : 'Please wait 3 minutes before watching another ad.');
-                }
-              }}
-              className="bg-[#1A1A1A] border border-green-500/20 p-4 rounded-2xl flex items-center justify-between active:opacity-70 transition-opacity w-full"
+              onClick={handleWatchAd}
+              disabled={isWatchingAd}
+              className="bg-[#1A1A1A] border border-green-500/20 p-4 rounded-2xl flex items-center justify-between active:opacity-70 transition-opacity w-full disabled:opacity-50"
             >
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center flex-none">
                   <Film className="text-green-500" size={16} />
                 </div>
-                <span className="font-bold text-sm text-white">{t('watchAd', 'Watch Ad')}</span>
+                <span className="font-bold text-sm text-white">
+                  {isWatchingAd 
+                    ? (isArabic ? 'جاري تحميل الإعلان...' : 'Loading Ad...') 
+                    : t('watchAd', 'Watch Ad')}
+                </span>
               </div>
               <span className="text-xs text-green-500 font-black bg-green-500/10 px-2 py-1 rounded-md" dir="ltr">+30</span>
             </button>
@@ -470,7 +483,7 @@ export const Profile = () => {
               <Crown className="text-yellow-500" size={14} />
               {isArabic ? 'باقات VIP الرسمية (بدون إعلانات)' : 'Official VIP Plans (Ad-Free)'}
             </h3>
-            <div className="scale-75 origin-right">
+            <div className="scale-75 origin-right ton-connect-btn-wrapper">
               <TonConnectButton />
             </div>
           </div>

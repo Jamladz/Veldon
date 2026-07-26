@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../store';
 import { MovieCard } from '../components/MovieCard';
-import { Play, Search, Crown } from 'lucide-react';
+import { TopPointsBadge } from '../components/TopPointsBadge';
+import { Play, Search } from 'lucide-react';
 import { fetchMoviesFromDB } from '../services/movieService';
 
 export const Home = () => {
@@ -64,30 +65,23 @@ export const Home = () => {
   return (
     <div className="h-full w-full flex flex-col bg-[#050505] overflow-y-auto overflow-x-hidden pb-24 hide-scrollbar">
       {/* Header/App Bar */}
-      <header className="sticky top-0 flex-none flex items-center justify-between p-6 z-40 bg-[#050505]/80 ">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-red-600 to-orange-500 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(229,9,20,0.3)]">
-             <Play size={24} className="text-white ml-1" fill="currentColor" />
+      <header className="sticky top-0 flex-none flex items-center justify-between p-4 sm:p-6 gap-2 z-40 bg-[#050505]/80 backdrop-blur-md max-w-full overflow-hidden">
+        <div className="flex items-center gap-2 min-w-0 shrink">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-red-600 to-orange-500 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(229,9,20,0.3)] shrink-0">
+             <Play size={20} className="text-white ml-0.5 sm:size-[24px]" fill="currentColor" />
           </div>
-          <h1 className="text-2xl font-black tracking-tighter text-white">DRAMA<span className="text-red-600">REEL</span></h1>
+          <h1 className="text-lg sm:text-2xl font-black tracking-tighter text-white truncate">DRAMA<span className="text-red-600">REEL</span></h1>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 shrink-0">
           <button 
             onClick={() => navigate('/search')}
-            className="w-9 h-9 flex items-center justify-center bg-[#1A1A1A] rounded-full border border-white/5 text-white/70 hover:text-white transition-colors active:opacity-80"
+            className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center bg-[#1A1A1A] rounded-full border border-white/5 text-white/70 hover:text-white transition-colors active:opacity-80 shrink-0"
           >
-            <Search size={18} />
+            <Search size={16} />
           </button>
-          <button 
-            onClick={() => navigate('/profile')}
-            className="flex items-center gap-2 bg-[#1A1A1A] hover:bg-[#222] px-3 py-1.5 rounded-full border border-amber-500/30 text-white active:scale-95 transition-all"
-          >
-            <div className="w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center text-[10px] font-black text-black">$</div>
-            <span className="text-xs font-bold text-yellow-400">{coins}</span>
-            {isVip && <Crown size={12} className="text-amber-400 fill-amber-400" />}
-          </button>
-          <button onClick={() => navigate('/profile')} className="active:opacity-80 transition-transform">
-            <img src={avatar} className="w-9 h-9 rounded-full border border-red-600/30 bg-[#1A1A1A] object-cover" alt="avatar" />
+          <TopPointsBadge />
+          <button onClick={() => navigate('/profile')} className="active:opacity-80 transition-transform shrink-0">
+            <img src={avatar} className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-red-600/30 bg-[#1A1A1A] object-cover" alt="avatar" />
           </button>
         </div>
       </header>

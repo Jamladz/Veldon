@@ -5,6 +5,7 @@ import { Heart, Share2, MessageCircle, Bookmark, PlayCircle, Plus, Zap, Sparkles
 import { useAppStore } from '../store';
 import { ReelPlayer } from '../components/ReelPlayer';
 import { TonPaymentModal } from '../components/TonPaymentModal';
+import { TopPointsBadge } from '../components/TopPointsBadge';
 import { showAdsgramAd, ADSGRAM_BLOCKS } from '../services/adsgramService';
 import { Movie } from '../types';
 
@@ -182,21 +183,24 @@ export const ForYou = () => {
       className="bg-black fixed inset-0 z-50 flex flex-col pb-24 select-none"
     >
       {/* Top Header overlay */}
-      <div className={`absolute top-0 left-0 right-0 p-4 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] flex items-center justify-between z-40 bg-gradient-to-b from-black/90 via-black/40 to-transparent transition-all duration-500 ${
+      <div className={`absolute top-0 left-0 right-0 p-2 sm:p-4 pt-[calc(0.5rem+env(safe-area-inset-top,0px))] flex items-center justify-between gap-1.5 z-40 bg-gradient-to-b from-black/90 via-black/40 to-transparent transition-all duration-500 max-w-full overflow-hidden ${
         areControlsVisible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
       }`}>
-        <div className="px-4 py-1.5 bg-black/50 rounded-full text-white font-bold text-sm pointer-events-auto border border-white/10 backdrop-blur-md">
+        <div className="px-3 py-1 bg-black/50 rounded-full text-white font-bold text-xs pointer-events-auto border border-white/10 backdrop-blur-md shrink-0">
           {t('forYou', 'For You')}
         </div>
 
-        {/* TON Payment Button */}
-        <button 
-          onClick={() => setShowTonModal(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-[#0098EA] to-blue-600 rounded-full text-white font-extrabold text-xs shadow-lg shadow-[#0098EA]/30 border border-[#0098EA]/40 pointer-events-auto active:scale-95 transition-transform"
-        >
-          <Zap size={14} className="text-yellow-300 animate-pulse" />
-          <span>{isArabic ? 'عملة TON' : 'TON Pay'}</span>
-        </button>
+        <div className="flex items-center gap-1.5 shrink-0 pointer-events-auto">
+          <TopPointsBadge />
+          {/* TON Payment Button */}
+          <button 
+            onClick={() => setShowTonModal(true)}
+            className="flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-[#0098EA] to-blue-600 rounded-xl text-white font-black text-[11px] sm:text-xs shadow-md shadow-[#0098EA]/30 border border-[#0098EA]/40 active:scale-95 transition-transform shrink-0 whitespace-nowrap"
+          >
+            <Zap size={12} className="text-yellow-300 animate-pulse" />
+            <span>{isArabic ? 'TON' : 'TON'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Vertical Scroll Container */}
