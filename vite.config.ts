@@ -15,9 +15,9 @@ function tonConnectManifestPlugin() {
           
           const manifest = {
             url: origin,
-            name: "DramaReel",
-            iconUrl: `${origin}/icon.svg`,
-            termsOfServiceUrl: origin,
+            name: "DramaReel VIP",
+            iconUrl: "https://ton.org/download/ton_symbol.png",
+            termsOfUseUrl: origin,
             privacyPolicyUrl: origin
           };
 
