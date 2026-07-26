@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, getDocs, doc, getDoc, setDoc, query, where, orderBy, limit, updateDoc, arrayUnion, arrayRemove, addDoc, serverTimestamp } from 'firebase/firestore';
+import { initializeFirestore, getFirestore, collection, getDocs, doc, getDoc, setDoc, query, where, orderBy, limit, updateDoc, arrayUnion, arrayRemove, addDoc, serverTimestamp } from 'firebase/firestore';
 import { getAuth, signInAnonymously, onAuthStateChanged, User } from 'firebase/auth';
 
 const firebaseConfig = {
@@ -13,7 +13,16 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const firestoreDatabaseId = "ai-studio-cineflow-1409744e-c8c4-4b03-b6b2-6884fbb3c81a";
-const db = getFirestore(app, firestoreDatabaseId);
+
+let db;
+try {
+  db = initializeFirestore(app, {
+    experimentalAutoDetectLongPolling: true
+  }, firestoreDatabaseId);
+} catch (e) {
+  db = getFirestore(app, firestoreDatabaseId);
+}
+
 const auth = getAuth(app);
 
 export { db, auth };
