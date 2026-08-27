@@ -32,6 +32,7 @@ export const Profile = () => {
     moviesCount, 
     seriesCount, 
     streakDays, 
+    lastDailyReward,
     claimDailyReward, 
     claimAdReward, 
     premiumUntil, 
@@ -57,7 +58,42 @@ export const Profile = () => {
     ? Math.ceil((premiumUntil - Date.now()) / (1000 * 60 * 60 * 24)) 
     : 0;
 
+  const [dailyTimeLeft, setDailyTimeLeft] = useState<string>('');
+  const [canClaimDaily, setCanClaimDaily] = useState<boolean>(true);
+
+  useEffect(() => {
+    const updateCountdown = () => {
+      if (!lastDailyReward) {
+        setCanClaimDaily(true);
+        setDailyTimeLeft('');
+        return;
+      }
+      
+      const oneDayMs = 24 * 60 * 60 * 1000;
+      const now = Date.now();
+      const timeSinceLast = now - lastDailyReward;
+      const remaining = oneDayMs - timeSinceLast;
+
+      if (remaining <= 0) {
+        setCanClaimDaily(true);
+        setDailyTimeLeft('');
+      } else {
+        setCanClaimDaily(false);
+        const h = Math.floor(remaining / (1000 * 60 * 60));
+        const m = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((remaining % (1000 * 60)) / 1000);
+        setDailyTimeLeft(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
+      }
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, [lastDailyReward]);
+
   const handleClaimDailyWithAd = async () => {
+    if (!canClaimDaily) return;
+
     setIsClaimingDaily(true);
     try {
       // Trigger Adsgram Ad int-39489 for daily attendance streak
@@ -376,11 +412,20 @@ export const Profile = () => {
 
           <button 
             onClick={handleClaimDailyWithAd}
-            disabled={isClaimingDaily}
-            className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-black font-black text-xs py-3 rounded-2xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            disabled={isClaimingDaily || !canClaimDaily}
+            className={`w-full font-black text-xs py-3 rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 ${
+              canClaimDaily 
+                ? 'bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-black active:scale-95'
+                : 'bg-white/10 text-white/50 cursor-not-allowed border border-white/5'
+            }`}
           >
             {isClaimingDaily ? (
               <span>{isArabic ? 'جاري تحميل الإعلان...' : 'Loading Ad...'}</span>
+            ) : !canClaimDaily ? (
+              <span className="flex items-center gap-2">
+                <Clock size={14} /> 
+                {isArabic ? 'متاح بعد:' : 'Available in:'} <span dir="ltr">{dailyTimeLeft}</span>
+              </span>
             ) : (
               <span>{isArabic ? 'استلام المكافأة اليومية (إعلان)' : 'Claim Daily Reward (Watch Ad)'}</span>
             )}

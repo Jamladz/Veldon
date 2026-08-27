@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Heart, Share2, MessageCircle, Bookmark, PlayCircle, Plus, Zap, Sparkles, Crown, Tv, Gift } from 'lucide-react';
 import { useAppStore } from '../store';
+import { AnimatedViews } from '../components/AnimatedViews';
 import { ReelPlayer } from '../components/ReelPlayer';
 import { TonPaymentModal } from '../components/TonPaymentModal';
 import { TopPointsBadge } from '../components/TopPointsBadge';
@@ -60,8 +61,22 @@ export const ForYou = () => {
     }, 4000);
   };
 
-  const handleScreenTouch = () => {
-    resetControlsTimer();
+  const handleScreenTouch = (e: React.MouseEvent | React.TouchEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('.pointer-events-auto')) {
+      resetControlsTimer();
+      return;
+    }
+    setAreControlsVisible(prev => {
+      const next = !prev;
+      if (next) {
+        if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
+        hideTimeoutRef.current = setTimeout(() => setAreControlsVisible(false), 4000);
+      } else {
+        if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
+      }
+      return next;
+    });
   };
 
   useEffect(() => {
@@ -179,7 +194,6 @@ export const ForYou = () => {
   return (
     <div 
       onClick={handleScreenTouch}
-      onTouchStart={handleScreenTouch}
       className="bg-black fixed inset-0 z-50 flex flex-col pb-24 select-none"
     >
       {/* Top Header overlay */}
@@ -342,6 +356,11 @@ export const ForYou = () => {
                   {t('share', 'مشاركة')}
                 </span>
               </button>
+
+              {/* Live Views Counter */}
+              <div className="flex flex-col items-center gap-1 mt-2">
+                <AnimatedViews baseViews={movie.views} className="text-white text-[11px] font-extrabold tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] flex-col !gap-0.5" iconSize={26} />
+              </div>
             </div>
 
             {/* Bottom Info Overlay */}

@@ -3,8 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Play, Heart, Share2, Star, Clock, Eye, Layers } from 'lucide-react';
 import { useAppStore } from '../store';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { MovieCard } from '../components/MovieCard';
+import { AnimatedViews } from '../components/AnimatedViews';
 
 export const MovieDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -12,6 +13,7 @@ export const MovieDetails = () => {
   const { t } = useTranslation();
   const { movies, favorites, toggleFavorite } = useAppStore();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const movie = movies.find(m => m.id === id);
   const isFav = movie ? favorites.includes(movie.id) : false;
@@ -26,6 +28,17 @@ export const MovieDetails = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const images = movie ? (movie.gallery && movie.gallery.length > 0 ? movie.gallery : [movie.largeImage || movie.coverImage, movie.coverImage]).filter(Boolean) : [];
+  const uniqueImages = Array.from(new Set(images));
+
+  useEffect(() => {
+    if (uniqueImages.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % uniqueImages.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [uniqueImages.length]);
+
   if (!movie) return <div className="p-8 text-center text-white">Movie not found</div>;
 
   const similarWorks = movies.filter(m => m.category === movie.category && m.id !== movie.id);
@@ -35,11 +48,11 @@ export const MovieDetails = () => {
       {/* Top Bar */}
       <div className="absolute top-0 left-0 right-0 z-50 bg-gradient-to-b from-[#050505]/80 to-transparent">
         <div className="flex justify-between items-center p-4">
-          <button onClick={() => navigate(-1)} className="w-10 h-10 bg-black/40  rounded-full flex items-center justify-center text-white">
+          <button onClick={() => navigate(-1)} className="w-10 h-10 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center text-white backdrop-blur-md transition-colors">
             <ArrowLeft size={24} />
           </button>
           <div className="flex gap-3">
-            <button onClick={() => toggleFavorite(movie.id)} className="w-10 h-10 bg-black/40  rounded-full flex items-center justify-center text-white">
+            <button onClick={() => toggleFavorite(movie.id)} className="w-10 h-10 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center text-white backdrop-blur-md transition-colors">
               <Heart size={20} className={isFav ? "fill-red-500 text-red-500" : ""} />
             </button>
             <button 
@@ -52,7 +65,7 @@ export const MovieDetails = () => {
                   }).catch(console.error);
                 }
               }}
-              className="w-10 h-10 bg-black/40  rounded-full flex items-center justify-center text-white active:opacity-80 transition-transform"
+              className="w-10 h-10 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center text-white active:opacity-80 backdrop-blur-md transition-colors"
             >
               <Share2 size={20} />
             </button>
@@ -60,17 +73,40 @@ export const MovieDetails = () => {
         </div>
       </div>
 
-      {/* Hero Image */}
-      <div className="flex-none relative w-full h-[45%]">
-        <div 
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${movie.largeImage || movie.coverImage || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=2070&auto=format&fit=crop'})` }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/40 to-transparent" />
+      {/* Hero Image Slider */}
+      <div className="flex-none relative w-full h-[45%] overflow-hidden bg-black">
+        <AnimatePresence mode="popLayout">
+          {uniqueImages.map((img, idx) => (
+            idx === currentImageIndex && (
+              <motion.div
+                key={img}
+                initial={{ opacity: 0, scale: 1.05 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1.2, ease: "easeInOut" }}
+                className="absolute inset-0 bg-cover bg-center"
+                style={{ backgroundImage: `url(${img || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=2070&auto=format&fit=crop'})` }}
+              />
+            )
+          ))}
+        </AnimatePresence>
+        <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/40 to-transparent z-10" />
+        
+        {/* Slider Indicators */}
+        {uniqueImages.length > 1 && (
+          <div className="absolute bottom-12 left-0 right-0 flex justify-center gap-1.5 z-20">
+            {uniqueImages.map((_, idx) => (
+              <div 
+                key={idx} 
+                className={`h-1 rounded-full transition-all duration-500 ${idx === currentImageIndex ? 'w-4 bg-red-600' : 'w-1.5 bg-white/40'}`} 
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex flex-col px-6 -mt-16 relative z-10 min-h-0">
+      <div className="flex-1 flex flex-col px-6 -mt-16 relative z-30 min-h-0">
         <div className="flex-none">
           <div className="flex items-center gap-2 mb-2">
             <span className="px-3 py-1 bg-red-600 text-[10px] font-bold rounded-md uppercase tracking-wider text-white">Featured</span>
@@ -82,7 +118,7 @@ export const MovieDetails = () => {
             <span className="flex items-center gap-1 font-bold text-yellow-500"><Star size={14} className="fill-yellow-500"/> {movie.rating}</span>
             <span>{movie.releaseYear}</span>
             <span>{(movie.episodes?.length || 0)} {t('episodes')}</span>
-            <span className="flex items-center gap-1"><Eye size={14}/> {(movie.views / 1000).toFixed(1)}K</span>
+            <AnimatedViews baseViews={movie.views} className="text-white/70" />
           </div>
 
           <button 

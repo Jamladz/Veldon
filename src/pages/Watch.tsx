@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Heart, Share2, MessageCircle, Bookmark, Layers, Gift, Plus, Zap, Sparkles, Crown, Tv } from 'lucide-react';
+import { AnimatedViews } from '../components/AnimatedViews';
 import { useAppStore } from '../store';
 import { ReelPlayer } from '../components/ReelPlayer';
 import { ReferralHub } from '../components/ReferralHub';
@@ -98,8 +99,22 @@ export const Watch = () => {
     }, 4000);
   };
 
-  const handleScreenTouch = () => {
-    resetControlsTimer();
+  const handleScreenTouch = (e: React.MouseEvent | React.TouchEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('.pointer-events-auto')) {
+      resetControlsTimer();
+      return;
+    }
+    setAreControlsVisible(prev => {
+      const next = !prev;
+      if (next) {
+        if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
+        hideTimeoutRef.current = setTimeout(() => setAreControlsVisible(false), 4000);
+      } else {
+        if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
+      }
+      return next;
+    });
   };
 
   useEffect(() => {
@@ -231,7 +246,6 @@ export const Watch = () => {
   return (
     <div 
       onClick={handleScreenTouch}
-      onTouchStart={handleScreenTouch}
       className="bg-black fixed inset-0 z-50 flex flex-col select-none" 
       dir={isArabic ? 'rtl' : 'ltr'}
     >
@@ -413,6 +427,11 @@ export const Watch = () => {
                     {isArabic ? '+50 نقطة' : '+50 Coins'}
                   </span>
                 </button>
+                
+                {/* Live Views Counter */}
+                <div className="flex flex-col items-center gap-1 mt-2">
+                  <AnimatedViews baseViews={movie.views} className="text-white text-[11px] font-extrabold tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] flex-col !gap-0.5" iconSize={26} />
+                </div>
               </div>
 
               {/* Bottom Episode Info & Details Overlay */}
