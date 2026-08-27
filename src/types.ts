@@ -12,6 +12,7 @@ export interface Movie {
   description: string;
   coverImage: string;
   largeImage?: string;
+  gallery?: string[];
   trailerUrl?: string;
   videoUrl: string; // URL for HLS or standard mp4
   episodes?: Episode[];

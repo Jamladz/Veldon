@@ -7,6 +7,11 @@ export const MOCK_MOVIES: Movie[] = [
     description: "A young warrior uncovers a secret that could destroy the world.",
     coverImage: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=800&q=80",
     largeImage: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=1200&q=80",
+    gallery: [
+      "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1574267432553-4b4047f3b584?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?auto=format&fit=crop&w=1200&q=80"
+    ],
     videoUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
     releaseYear: 2026,
     duration: 120,
