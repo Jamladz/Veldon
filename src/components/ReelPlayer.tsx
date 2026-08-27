@@ -48,7 +48,6 @@ export const ReelPlayer: React.FC<ReelPlayerProps> = ({ url, isActive, duration,
     
     if (!isActive) {
       onCompleteCalledRef.current = false;
-      setWatchedSeconds(0);
       if (video) {
         try {
           video.pause();
@@ -58,38 +57,8 @@ export const ReelPlayer: React.FC<ReelPlayerProps> = ({ url, isActive, duration,
       }
     } else {
       onCompleteCalledRef.current = false;
-      setWatchedSeconds(0);
     }
   }, [isActive]);
-
-  // Intelligent Watch Counter (Only increments when active & video is ACTUALLY playing, not buffering/paused/offline)
-  useEffect(() => {
-    if (!isActive || !duration || duration <= 0) return;
-
-    const interval = setInterval(() => {
-      if (onCompleteCalledRef.current) return;
-
-      // Check if network or player is buffering/paused
-      const canCount = isOnline && 
-        document.visibilityState === 'visible' && 
-        (parsed.embedUrl ? (iframeState === 'playing') : (isPlaying && !isBuffering));
-
-      if (canCount) {
-        setWatchedSeconds(prev => {
-          const next = prev + 1;
-          if (next >= duration) {
-            if (!onCompleteCalledRef.current) {
-              onCompleteCalledRef.current = true;
-              if (onComplete) onComplete();
-            }
-          }
-          return next;
-        });
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [isActive, duration, isOnline, iframeState, isPlaying, isBuffering, parsed.embedUrl, onComplete]);
 
   useEffect(() => {
     if (parsed.embedUrl || !parsed.originalUrl) return;
@@ -256,16 +225,8 @@ export const ReelPlayer: React.FC<ReelPlayerProps> = ({ url, isActive, duration,
     const video = videoRef.current;
     if (!video) return;
 
-    // Check if HTML5 video reached admin duration target
-    if (duration && duration > 0 && video.currentTime >= duration) {
-      if (!onCompleteCalledRef.current) {
-        onCompleteCalledRef.current = true;
-        if (onComplete) onComplete();
-      }
-    }
-
     if (video.duration) {
-      const targetDuration = (duration && duration > 0) ? Math.min(duration, video.duration) : video.duration;
+      const targetDuration = video.duration;
       const pct = Math.min(100, (video.currentTime / targetDuration) * 100);
       setProgress(pct);
     }
@@ -296,22 +257,9 @@ export const ReelPlayer: React.FC<ReelPlayerProps> = ({ url, isActive, duration,
               referrerPolicy="no-referrer-when-downgrade"
               title="Video Player"
             />
-            {/* Transparent Touch Shield Layer - prevents touching internal video controls while enabling smooth vertical scrolling */}
-            <div className="absolute inset-0 z-20 bg-transparent pointer-events-auto touch-pan-y" />
 
-          {/* Top Controls Bar (Timer & Network Sensor) */}
-          <div className="absolute top-[calc(3.8rem+env(safe-area-inset-top,0px))] left-3.5 right-3.5 z-30 flex items-center justify-between pointer-events-none">
-            {/* Left: Timer Badge */}
-            {duration && duration > 0 ? (
-              <div className="bg-black/70 border border-amber-500/30 px-3.5 py-1.5 rounded-full text-xs font-mono font-extrabold text-amber-400 backdrop-blur-xl shadow-[0_4px_20px_rgba(0,0,0,0.6)] flex items-center gap-2 pointer-events-auto">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-                </span>
-                <span>{formatTime(watchedSeconds)} / {formatTime(duration)}</span>
-              </div>
-            ) : <div />}
-
+          {/* Top Controls Bar (Network Sensor) */}
+          <div className="absolute top-[calc(3.8rem+env(safe-area-inset-top,0px))] left-3.5 right-3.5 z-30 flex items-center justify-end pointer-events-none">
             {/* Right: Network Status indicator if offline / buffering */}
             {isBufferingOrOffline && (
               <div className="flex items-center gap-2 bg-black/80 text-amber-400 text-xs px-3.5 py-1.5 rounded-full border border-amber-500/40 shadow-xl backdrop-blur-xl animate-pulse pointer-events-auto">
@@ -395,19 +343,9 @@ export const ReelPlayer: React.FC<ReelPlayerProps> = ({ url, isActive, duration,
         </div>
       )}
 
-      {/* Top Controls: Sound Toggle & Duration Counter */}
+      {/* Top Controls: Sound Toggle */}
       {isActive && (
-        <div className="absolute top-[calc(3.8rem+env(safe-area-inset-top,0px))] left-3.5 right-3.5 z-30 flex items-center justify-between pointer-events-none">
-          {duration && duration > 0 ? (
-            <div className="bg-black/70 border border-amber-500/30 px-3.5 py-1.5 rounded-full text-xs font-mono font-extrabold text-amber-400 backdrop-blur-xl shadow-[0_4px_20px_rgba(0,0,0,0.6)] flex items-center gap-2 pointer-events-auto">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-              </span>
-              <span>{formatTime(watchedSeconds)} / {formatTime(duration)}</span>
-            </div>
-          ) : <div />}
-
+        <div className="absolute top-[calc(3.8rem+env(safe-area-inset-top,0px))] left-3.5 right-3.5 z-30 flex items-center justify-end pointer-events-none">
           <button
             onClick={toggleMute}
             className="w-10 h-10 bg-black/60 border border-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-xl active:scale-90 hover:border-white/40 transition-all shadow-lg pointer-events-auto"

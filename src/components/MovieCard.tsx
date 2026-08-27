@@ -5,6 +5,7 @@ import { Play, Star, Heart } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAppStore } from '../store';
 import { useTranslation } from 'react-i18next';
+import { AnimatedViews } from './AnimatedViews';
 
 const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=2070&auto=format&fit=crop";
 
@@ -47,6 +48,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({ movie, featured }) => {
             <span className="px-3 py-1 bg-black/40  text-[10px] font-bold rounded-md uppercase tracking-wider text-white border border-white/10">
               {movie.category} • {movie.releaseYear}
             </span>
+            <AnimatedViews baseViews={movie.views} className="text-[10px] text-white font-bold bg-black/40 px-3 py-1 rounded-md border border-white/10" iconSize={12} />
           </div>
           <h2 className="text-4xl font-black text-white leading-none tracking-tighter" onClick={() => navigate(`/movie/${movie.id}`)}>{movie.title.toUpperCase()}</h2>
           <p className="text-white/70 max-w-lg text-sm line-clamp-2" onClick={() => navigate(`/movie/${movie.id}`)}>{movie.description}</p>
@@ -93,7 +95,10 @@ export const MovieCard: React.FC<MovieCardProps> = ({ movie, featured }) => {
       </div>
       <div>
         <h4 className="text-sm font-bold text-white group-hover:text-red-500 transition-colors truncate">{movie.title}</h4>
-        <p className="text-xs text-white/40 truncate">{movie.category} • {(movie.episodes?.length || 0) > 1 ? `${movie.episodes?.length || 0} ${t('episodes')}` : movie.releaseYear}</p>
+        <div className="flex flex-col gap-0.5 mt-0.5">
+          <p className="text-xs text-white/40 truncate">{movie.category} • {(movie.episodes?.length || 0) > 1 ? `${movie.episodes?.length || 0} ${t('episodes')}` : movie.releaseYear}</p>
+          <AnimatedViews baseViews={movie.views} className="text-[10px] text-white/30" iconSize={10} />
+        </div>
       </div>
     </motion.div>
   );
