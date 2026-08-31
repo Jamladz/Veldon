@@ -1,5 +1,4 @@
 // Adsgram Telegram Ad Controller Service
-
 declare global {
   interface Window {
     Adsgram?: {
@@ -10,10 +9,14 @@ declare global {
   }
 }
 
+// Block ID
+export const ADSGRAM_BLOCK_ID = "45442";
+
 export const ADSGRAM_BLOCKS = {
   EPISODE_REWARD: 'int-39490', // Adsgram Ad for episode unlock
   DAILY_STREAK: 'int-39489',   // Adsgram Ad for Daily Attendance reward
-  WATCH_AD: 'int-39490',       // Block ID for Watch Ad
+  WATCH_AD: 'int-39490',       // Old block
+  REWARD_AD: ADSGRAM_BLOCK_ID, // New Reward Block
 };
 
 export async function showAdsgramAd(blockId: string): Promise<boolean> {
@@ -28,17 +31,16 @@ export async function showAdsgramAd(blockId: string): Promise<boolean> {
           })
           .catch((err) => {
             console.warn('Adsgram Ad skipped or error:', err);
-            // If ad fails or skipped inside Telegram, fallback to allowed or return false
-            // Allow fallback if outside Telegram or user dismissed
-            resolve(true);
+            // Must return false if skipped or error for the Reward Ad to not grant points!
+            resolve(false);
           });
       } catch (e) {
         console.error('Adsgram Init Exception:', e);
-        resolve(true);
+        resolve(false);
       }
     } else {
-      console.warn('Adsgram SDK not detected on window. Proceeding with simulated completion.');
-      resolve(true);
+      console.warn('Adsgram SDK not detected on window.');
+      resolve(false);
     }
   });
 }
