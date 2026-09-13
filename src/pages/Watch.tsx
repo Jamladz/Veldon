@@ -346,10 +346,6 @@ export const Watch = () => {
             if (entry.intersectionRatio > 0.5) {
               bestEpId = epId;
             }
-            // Immediate pause on iOS when scrolling starts (visibility drops below 95%)
-            if (epId === playerSessionRef.current.episodeId && entry.intersectionRatio < 0.95) {
-              setPlayingEpisodeId('');
-            }
           }
         });
         
@@ -426,11 +422,7 @@ export const Watch = () => {
       }`}>
         <button 
           onClick={() => {
-            if (window.history.state && window.history.state.idx > 0) {
-              navigate(-1);
-            } else {
-              navigate('/', { replace: true });
-            }
+              navigate(`/movie/${movie.id}`, { replace: true });
           }}
           className="w-10 h-10 bg-black/60 backdrop-blur-xl rounded-full flex items-center justify-center text-white/90 border border-white/20 shadow-[0_4px_15px_rgba(0,0,0,0.5)] active:scale-90 transition-all hover:bg-black/80 hover:text-white hover:border-white/40 pointer-events-auto"
         >
@@ -547,7 +539,7 @@ export const Watch = () => {
                   <ReelPlayer 
                     url={ep.videoUrl} 
                     isActive={isCurrentActive}
-                    forcePause={playingEpisodeId !== ep.id || !isAppVisible}
+                    forcePause={playingEpisodeId !== ep.id}
                     shouldLoad={isNearActive}
                     duration={ep.duration}
                     isUIVisible={areControlsVisible}
